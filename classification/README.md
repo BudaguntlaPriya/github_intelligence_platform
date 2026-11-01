@@ -177,14 +177,24 @@ This creates a hybrid classification system combining interpretable rules with m
 
 
 \## Model Evaluation
+### Gold-Set Evaluation
 
+In addition to the weak-label evaluation, the hybrid classifier was tested on a manually labelled gold set containing 36 examples.
+
+The hybrid classifier achieved:
+
+**100% accuracy on the 36-example gold set.**
+
+This result should be interpreted cautiously because the gold set is small.
 
 
 The current model achieved:
 
 
 
-\*\*79.47% accuracy on the weakly labelled evaluation set.\*\*
+\**77.60% accuracy on the weakly labelled evaluation set.**
+
+The latest hybrid classifier was also evaluated on a manually labelled gold set of 36 examples and achieved **100% accuracy** on that small evaluation set.
 
 
 
