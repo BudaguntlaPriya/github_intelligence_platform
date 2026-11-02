@@ -1,0 +1,26 @@
+Weak-label test accuracy: 0.7760
+Macro-F1: 0.7170
+
+               precision    recall  f1-score   support
+
+          Bug       0.89      0.83      0.86       132
+Documentation       0.72      0.87      0.79        55
+      Feature       0.73      0.57      0.64        14
+  Performance       1.00      0.60      0.75         5
+     Question       0.51      0.57      0.54        37
+     Security       1.00      0.57      0.73         7
+
+     accuracy                           0.78       250
+    macro avg       0.81      0.67      0.72       250
+ weighted avg       0.79      0.78      0.78       250
+
+Confusion matrix:
+['Bug', 'Documentation', 'Feature', 'Performance', 'Question', 'Security']
+[[110  10   0   0  12   0]
+ [  4  48   1   0   2   0]
+ [  3   2   8   0   1   0]
+ [  0   0   0   3   2   0]
+ [  7   7   2   0  21   0]
+ [  0   0   0   0   3   4]]
+
+Hybrid accuracy on hand-labelled gold set (36 examples): 1.0000
