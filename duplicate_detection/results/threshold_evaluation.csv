@@ -1,0 +1,5 @@
+"threshold","status","verified_pairs","verified_duplicates","verified_non_duplicates","candidate_pool_threshold","pool_pairs_above_threshold","evaluation_scope","precision","recall","f1","tn","fp","fn","tp"
+"0.75","insufficient_verified_labels","0","0","0","0.75","1602","Verified candidate pairs generated at >= 0.75; recall is limited to this reviewed candidate pool, not all issue pairs.","","","","","","",""
+"0.8","insufficient_verified_labels","0","0","0","0.75","483","Verified candidate pairs generated at >= 0.75; recall is limited to this reviewed candidate pool, not all issue pairs.","","","","","","",""
+"0.85","insufficient_verified_labels","0","0","0","0.75","151","Verified candidate pairs generated at >= 0.75; recall is limited to this reviewed candidate pool, not all issue pairs.","","","","","","",""
+"0.9","insufficient_verified_labels","0","0","0","0.75","45","Verified candidate pairs generated at >= 0.75; recall is limited to this reviewed candidate pool, not all issue pairs.","","","","","","",""

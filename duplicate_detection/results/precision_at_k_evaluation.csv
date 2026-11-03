@@ -1,0 +1,5 @@
+"k","status","precision_at_k","evaluated_queries","verified_queries","verified_pairs","evaluation_scope"
+"1","insufficient_verified_labels","","0","0","0","Macro Precision@k over verified candidate pairs only; queries need at least k verified judgments. This is not a full-corpus evaluation."
+"3","insufficient_verified_labels","","0","0","0","Macro Precision@k over verified candidate pairs only; queries need at least k verified judgments. This is not a full-corpus evaluation."
+"5","insufficient_verified_labels","","0","0","0","Macro Precision@k over verified candidate pairs only; queries need at least k verified judgments. This is not a full-corpus evaluation."
+"10","insufficient_verified_labels","","0","0","0","Macro Precision@k over verified candidate pairs only; queries need at least k verified judgments. This is not a full-corpus evaluation."
