@@ -1,0 +1,585 @@
+issue_id,issue_number,title,source_description_truncated,summary_a,summary_b,rater1_a_faithfulness,rater1_a_coverage,rater1_a_readability,rater1_b_faithfulness,rater1_b_coverage,rater1_b_readability,rater2_a_faithfulness,rater2_a_coverage,rater2_a_readability,rater2_b_faithfulness,rater2_b_coverage,rater2_b_readability,notes
+1059169545,4351,"ImportError when trying to start flask app, but no stack trace printed","I am trying to set up a flask application on my new machine. First I checked out the sources from our server - I am pretty sure the application directory structure is correct, as we are using it exactly like this on other machines.
+
+However, when I try to run the app on my new computer I get the following error:
+
+```
+$ FLASK_ENV=""development"" FLASK_APP=""run.py"" flask run
+ * Serving Flask app 'run.py' (lazy loading)
+ * Environment: development
+ * Debug mode: on
+Usage: flask run [OPTIONS]
+Try 'flask run --help' for help.
+
+Error: While importing 'run', an ImportError was raised.
+```
+
+Problem is: No more output is printed, in particular no stack trace. So I don't know what exactly the problem is. How can I tell flask to print the stack trace?
+
+Environment:
+- Python version: 3.8.10
+- Flask vers","I am trying to set up a flask application on my new machine. Problem is: No more output is printed, in particular no stack trace. How can I tell flask to print the stack trace?","I am trying to set up a flask application on my new machine. First I checked out the sources from our server - I am pretty sure the application directory structure is correct, as we are using it exactly like this on other machines. However, when I try to run the app on my new computer I get the following error (code omitted).",5.0,5.0,4.0,5.0,2.0,4.0,,,,,,,
+283231015,2564,session.new is never true,"According to the [documentation](http://flask.pocoo.org/docs/0.12/api/#flask.session.new), **new** attribute returns **True** if the session is new. Otherwise **False**, but it's not like that. How to reproduce:
+
+```
+from flask import Flask, session
+
+app = Flask(__name__)
+app.config[""SECRET_KEY""] = ""thisisasecret""
+app.config['SESSION_TYPE'] = 'filesystem'
+
+@app.route(""/"")
+def index():
+    if 'user_id' not in session:
+        session['user_id'] = 'jon'
+    print(session.new)
+    print(session.modified)
+    return 'testing sessions'
+# just for debugging
+@app.route(""/clear"")
+def clear():
+    session.clear()
+    return 'clear'
+
+if __name__ == ""__main__"":
+    app.run(debug=True)
+```
+
+Run app and call _/_ endpoint twice. Output:
+
+```
+127.0.0.1 - - [19/Dec/2017 16:18:20] ""GET /clear HTTP/1.1"" 200","According to the documentation, **new** attribute returns **True** if the session is new. Otherwise **False**, but it's not like that. How to reproduce (code omitted).","According to the documentation, **new** attribute returns **True** if the session is new. How to reproduce (code omitted). As I Understood when we initialize session, **session.new** should return **True**(when we call endpoint at first time).",5.0,4.0,4.0,5.0,4.0,4.0,,,,,,,
+51245069,1271,Route parameter types,"`@auth.route('/users/<int:user_id>')`
+If user_id > sys.maxint then user_id is long.
+
+Is this actually wanted behavior? Because now you cant actually pass those forward without double checking them. Found this when I was expecting integer to be integer and passed it to straigh to peewee and got ""OverflowError: long too big to convert"".",@auth.route('/users/ '). If user_id > sys.maxint then user_id is long. Is this actually wanted behavior?,If user_id > sys.maxint then user_id is long. Is this actually wanted behavior? Because now you cant actually pass those forward without double checking them.,4.0,4.0,3.0,5.0,5.0,5.0,,,,,,,
+1671470213,5070,pip install flask-sqlalchemy  Fails,"<!--
+On newest version of python (3.11). Using Pycharm. Venv environment.
+Trying to attach Sqlalchemy.
+
+pip install flask-wtf      Works fine
+pip install flask-sqlalchemy     Fails. 
+
+Fails to build greenlet.  Wheel does not run successfully.
+
+Using the same steps in python (3.8), all works fine.
+
+Is it not compatible with version 3.11
+
+Any help is appreciated.
+
+Thanks,
+Digdug
+
+-->
+
+<!--
+Describe how to replicate the bug.
+
+Include a minimal reproducible example that demonstrates the bug.
+Include the full traceback if there was an exception.
+-->
+
+<!--
+Describe the expected behavior that should have happened but didn't.
+-->
+
+Environment:
+
+- Python version:
+- Flask version:",pip install flask-sqlalchemy  Fails,pip install flask-sqlalchemy  Fails.,5.0,2.0,3.0,5.0,2.0,3.0,,,,,,,
+324805213,2794,Python flask threads does not close,"My python flask app runs using `nohup`. ie it is always live. I see that it creates a thread every time user submits from page. It is because flask.run is with `multithread=true`. But my problem is even after the processing is over, the thread doesn't seem to be closed. I'm checking this with the `ps -eLf |grep userid` command. where i see many threads still active long after the code execution is over. and it gets added when another submit is done. All threads are removed when the app itself is restarted.
+
+What is the criteria for the thread to close without restarting the app?
+is it because the memory not getting released?
+
+```
+app = Flask(__name__)
+@app.route('/submit',methods = ['GET','POST'])
+def submit():
+    #obj1=class1()
+    #obj2=class2(obj1)
+    #obj3=class3(obj1)
+    #refer obj",My python flask app runs using nohup. ie it is always live. All threads are removed when the app itself is restarted. What is the criteria for the thread to close without restarting the app?,My python flask app runs using nohup. ie it is always live. I see that it creates a thread every time user submits from page. It is because flask.run is with multithread=true.,5.0,4.0,4.0,5.0,3.0,4.0,,,,,,,
+605286138,3583,Why is it so difficult for flask_apscheduler to get the flask context??,"### Why is it so difficult for flask_apscheduler to get the flask context??
+### Can you provide a better case
+### Unlike springboot, you can't get the context content at any time after boot
+### Now the way to deal with it feels more tired than giving birth!!
+###  I just want to read the configuration file information in flask after the program starts in a timed task. This is a problem for a scheduled task, and I've never seen a flask more tired.
+```
+Working outside of application context.
+```","### Why is it so difficult for flask_apscheduler to get the flask context?? ### Unlike springboot, you can't get the context content at any time after boot. This is a problem for a scheduled task, and I've never seen a flask more tired.","### Why is it so difficult for flask_apscheduler to get the flask context?? ### Can you provide a better case. ### Unlike springboot, you can't get the context content at any time after boot.",5.0,4.0,3.0,5.0,3.0,2.0,,,,,,,
+1344746641,4775,Flask flashing behaviour different in production compared with using flask development server,"### Discussed in https://github.com/pallets/flask/discussions/4770
+
+<div type='discussions-op-text'>
+
+<sup>Originally posted by **hiven** August 17, 2022</sup>
+Flask delivers different results depending on whether deployed in production or in development, specifically around flashing messages.
+
+This code fails to show the ""something went wrong"" flash in development but the same code shows the message in production. 
+
+```python
+@main_blueprint.route('/view/<items_id>', methods=['GET', 'POST'])
+def view_items(items_id):
+    item = Items.query.filter_by(id=items_id).first()
+    if item:
+        flash('Item List Ok')
+        return render_template('main/item.html', item=item)
+    else:
+        flash('Something went wrong')
+        return redirect(url_for('main.all_items'))
+```
+
+Code used:
+http","### Discussed in. Flask delivers different results depending on whether deployed in production or in development, specifically around flashing messages. This code fails to show the ""something went wrong"" flash in development but the same code shows the message in production.","### Discussed in. Originally posted by **hiven** August 17, 2022. Flask delivers different results depending on whether deployed in production or in development, specifically around flashing messages.",5.0,5.0,4.0,5.0,3.0,3.0,,,,,,,
+2982932759,5711,close resources before reload (option --reload),"I have a Flask application that establishes connections to multiple SQLite databases.  When the local development server (werkzeug) is started with option ``--reload`` the connections are not closed on reload, since Python 3.13 this is also logged with a [ResourceWarning](https://docs.python.org/3/whatsnew/3.13.html#sqlite3):
+
+    ResourceWarning: unclosed database in <sqlite3.Connection object at ...>
+
+Since the application (since each thread) establishes various DB connections, the (debug) log is flooded with such warnings during development.
+
+I am aware that the DB connectors can be closed when the context is [torn down](https://flask.palletsprojects.com/en/stable/patterns/sqlite3/), but this is not desired. The DB connections should be open over the entire lifetime of the server (threa","I have a Flask application that establishes connections to multiple SQLite databases. When the local development server (werkzeug) is started with option `--reload` the connections are not closed on reload, since Python 3.13 this is also logged with a ResourceWarning (code omitted). Since the application (since each thread) establishes various DB connections, the (debug) log is flooded with such warnings during development.","When the local development server (werkzeug) is started with option `--reload` the connections are not closed on reload, since Python 3.13 this is also logged with a ResourceWarning (code omitted). Since the application (since each thread) establishes various DB connections, the (debug) log is flooded with such warnings during development. The DB connections should be open over the entire lifetime of the server (thread).",5.0,5.0,5.0,5.0,5.0,5.0,,,,,,,
+172235467,1986,Setting items on `response.header` with bytestrings results in new headers in Python 3,"Minimal example below
+
+``` python
+# coding=utf8
+from flask import Flask, Response
+
+app = Flask(__name__)
+
+@app.route('/')
+def hello():
+    response = Response(""!!!"")
+    response.headers[b'Server'] = 'Flask'
+    return response
+```
+
+In Python 2.7.12, the resulting response has a HTTP header of `Server: Flask`. In Python 3.5.2, the resulting response has HTTP headers of `Server: Werkzeug/0.11.10 Python/3.5.2` and `b'Server': Flask`.  Python 2 has the expected behavior.
+
+Testing from within a Python 3 venv, `pip freeze` output is:
+
+```
+click==6.6
+Flask==0.11.1
+itsdangerous==0.24
+Jinja2==2.8
+MarkupSafe==0.23
+Werkzeug==0.11.10
+```","Minimal example below. In Python 2.7.12, the resulting response has a HTTP header of Server: Flask. In Python 3.5.2, the resulting response has HTTP headers of Server: Werkzeug/0.11.10 Python/3.5.2 and b'Server': Flask.","In Python 2.7.12, the resulting response has a HTTP header of Server: Flask. In Python 3.5.2, the resulting response has HTTP headers of Server: Werkzeug/0.11.10 Python/3.5.2 and b'Server': Flask. Python 2 has the expected behavior.",5.0,5.0,4.0,5.0,5.0,5.0,,,,,,,
+3372901713,5804,3.1.2 regression: `stream_with_context` triggers `teardown_request()` calls before response generation,"<!--
+This issue tracker is a tool to address bugs in Flask itself. Please use
+GitHub Discussions or the Pallets Discord for questions about your own code.
+
+Replace this comment with a clear outline of what the bug is.
+-->
+
+<!--
+Describe how to replicate the bug.
+
+Include a minimal reproducible example that demonstrates the bug.
+Include the full traceback if there was an exception.
+-->
+
+<!--
+Describe the expected behavior that should have happened but didn't.
+-->
+Hello,
+
+I believe the changes to `stream_with_context()` in https://github.com/pallets/flask/pull/5799/commits/9822a0351574790cb66c652fcc396ad7aa2b09d8 introduced a bug where the `teardown_request()` callables are invoked too early in the request/response lifecycle (and actually invoked twice, before generating the response and a s","I believe the changes to stream_with_context() in introduced a bug where the teardown_request() callables are invoked too early in the request/response lifecycle (and actually invoked twice, before generating the response and a second time after the end of the request). Take the following example (code omitted). Specifically,.","I believe the changes to stream_with_context() in introduced a bug where the teardown_request() callables are invoked too early in the request/response lifecycle (and actually invoked twice, before generating the response and a second time after the end of the request). in 3.1.1, the only call, once the request is done, is triggered by ⇒.",4.0,4.0,3.0,4.0,4.0,3.0,,,,,,,
+1473561545,4893,flask.url_for no longer supporting values parameter,"In Flask 2.2.2, `flask.url_for` is no longer using the `values` parameter as a proxy for the keyword arguments list, and is instead turning that into a URL parameter.
+
+For example, in previous versions of Flask, I was able to do something like:
+
+```
+@app.route('/one')
+def some_endpoint():
+    return flask.redirect(flask.url_for(""other_endpoint"", values=flask.request.args))
+
+@app.route('/two')
+def other_endpoint():
+    return ""Hello""
+```
+
+and then a request to e.g. `/one?foo=bar&foo=baz` would then redirect to `/two?foo=bar&foo=baz`. However, now it redirects to `/two?values=ImmutableMultiDict([('foo',+'bar'),+('foo',+'baz')])`.
+
+I'm guessing that the underlying parameter name for the keyword arguments list has changed, but [the documentation](https://flask.palletsprojects.com/en/2.2.x/api/","In Flask 2.2.2, flask.url_for is no longer using the values parameter as a proxy for the keyword arguments list, and is instead turning that into a URL parameter. and then a request to e.g. /one?foo=bar&foo=baz would then redirect to /two?foo=bar&foo=baz. However, now it redirects to /two?values=ImmutableMultiDict([('foo',+'bar'),+('foo',+'baz')]).","In Flask 2.2.2, flask.url_for is no longer using the values parameter as a proxy for the keyword arguments list, and is instead turning that into a URL parameter. For example, in previous versions of Flask, I was able to do something like (code omitted). and then a request to e.g. /one?foo=bar&foo=baz would then redirect to /two?foo=bar&foo=baz.",5.0,5.0,4.0,5.0,4.0,4.0,,,,,,,
+1211017088,4546,JSON data goes to method if not consumed,"When JSON data is send in a POST (or PUT) body, if you don't consume this data, they appear in the method string of the next request and results in a 405 Method Not Allowed response. 
+
+This example code reproduces the error.
+
+```
+from flask import Flask, request, jsonify
+
+app = Flask(__name__)
+
+@app.post(""/test_ajax"")
+def test_ajax():
+    return jsonify({""hello"": ""world""})
+
+@app.get(""/test"")
+def test():
+    return (
+        ""<a href='javascript:test();'>Test</a>""
+        ""<script>""
+        ""function test() {""
+        ""    fetch('/test_ajax', {""
+        ""        method: 'POST',""
+        ""        headers: {'Content-Type': 'application/json'},""
+        ""        body: JSON.stringify({'foo': 'bar'})""
+        ""    });""
+        ""}""
+        ""</script>""
+    )
+```
+This is the log result
+```
+ * Detec","When JSON data is send in a POST (or PUT) body, if you don't consume this data, they appear in the method string of the next request and results in a 405 Method Not Allowed response. This example code reproduces the error. This is the log result.","When JSON data is send in a POST (or PUT) body, if you don't consume this data, they appear in the method string of the next request and results in a 405 Method Not Allowed response. It works as expected (code omitted). If I design a url to don't use data but the user send any, it will result in a hard to debug weird behaviour.",5.0,4.0,4.0,5.0,5.0,4.0,,,,,,,
+133181907,1725,"Run Flask in Thread, user the main thread for own logic?","Hi,
+
+is it possible to let Flask run in a Thread?
+I have the problem that in my project, I have to use the VBox XPCOM API, this api work only in the main thread:
+
+`bash
+return xpcom._xpcom.WaitForEvents(timeout)  
+Exception: wrong thread, use the main thread
+`
+
+Now I want run as example a Job thread, this thread have to do sometimes, something with VBox.
+And I want to let run the Flask Server with the arg threaded=True.
+
+Now it will be very nice, if I can spawn the app.run into a Thread and in the main Thread run a loop whats call the VBox XPCOM API","is it possible to let Flask run in a Thread? I have the problem that in my project, I have to use the VBox XPCOM API, this api work only in the main thread (code omitted). return xpcom._xpcom.WaitForEvents(timeout).","is it possible to let Flask run in a Thread? Exception: wrong thread, use the main thread. Now it will be very nice, if I can spawn the app.run into a Thread and in the main Thread run a loop whats call the VBox XPCOM API.",5.0,4.0,4.0,5.0,5.0,4.0,,,,,,,
+29353123,999,send_file in combination with chrome on android,"A cStringIO file containing pdf data is uploaded using send_file:
+
+```
+# pdf is the cStringIO instance.
+return send_file(pdf, mimetype=""application/pdf"",
+                         as_attachment=True,
+                         attachment_filename=""basicreport.pdf"")
+```
+
+this works on android when using firefox. On chrome the download fails with an ""Untitled"" filename.
+
+When manually creating the response manually all works fine..
+
+```
+response = make_response(pdf.read())
+response.headers['Content-Type'] = 'application/pdf'
+response.headers['Content-Disposition'] = 'attachment; filename=basicreport.pdf'
+```","A cStringIO file containing pdf data is uploaded using send_file (code omitted). this works on android when using firefox. On chrome the download fails with an ""Untitled"" filename. When manually creating the response manually all works fine..","A cStringIO file containing pdf data is uploaded using send_file (code omitted). this works on android when using firefox. On chrome the download fails with an ""Untitled"" filename.",5.0,5.0,5.0,5.0,4.0,5.0,,,,,,,
+743313698,3833,Web site / documentation: Should tell what Flask *is*,"I went to the web site to find out what Flask **is**.  That question is never directly answered, that I can find.
+It might be helpful if the front page of the web site and/or the _Introduction_ page in the documentation had 1-3 sentence statement of what the heck Flask is / does.  What's it for?
+
+At present, the documentation on the site gives no indication of why one should read more, of what Flask can do.
+Reading through the first bits of the docs, I get the feeling that maybe Flask has something to with writing web services in Python.","I went to the web site to find out what Flask **is**. It might be helpful if the front page of the web site and/or the _Introduction_ page in the documentation had 1-3 sentence statement of what the heck Flask is / does. At present, the documentation on the site gives no indication of why one should read more, of what Flask can do.","I went to the web site to find out what Flask **is**. That question is never directly answered, that I can find. It might be helpful if the front page of the web site and/or the _Introduction_ page in the documentation had 1-3 sentence statement of what the heck Flask is / does.",5.0,5.0,5.0,5.0,5.0,5.0,,,,,,,
+290359679,2604,Flask shell: Give readline a completer that is aware of shell context,"### Problem
+`cli.py:shell_command` (flask shell) creates a context and passes it to `code.interact`
+This leaves tab completion broken:
+
+```
+>>> stuff = 5
+>>> stuTABTABTABTAB <- no match
+```
+### Suggestion
+This can be remedied by supplying a completer to readline:
+
+```
+>>> import readline
+>>> import rlcompleter
+>>> readline.set_completer(rlcompleter.Completer(globals()).complete)
+>>> stuTAB <- stuff! yay!
+```
+
+Or perhaps `flask/__main__.py` could be used as the context:
+
+*file: flask/cli.py*
+```
+...
+def shell_command():
+...
+    import __main__
+    ctx = __main__.__dict__
+...
+```",cli.py:shell_command (flask shell) creates a context and passes it to code.interact. This leaves tab completion broken (code omitted). Or perhaps flask/__main__.py could be used as the context (code omitted).,cli.py:shell_command (flask shell) creates a context and passes it to code.interact. This leaves tab completion broken (code omitted). ### Suggestion.,5.0,5.0,5.0,5.0,3.0,2.0,,,,,,,
+315511857,2706,Different app discovery behavior on commands run and shell,"The commands `run` and `shell` are behaving differently to locate the `app`, I can send a PR but first I want to confirm if this is a problem or expected behavior.
+
+### Expected Behavior
+
+Assuming the tree
+
+```bash
+/topdir
+|____/appdir
+|_________/app.py 
+```
+then
+
+```bash
+export FLASK_APP=app.py
+cd topdir
+```
+
+If you run
+
+```bash
+flask run
+```
+
+The command can find the `app` in the subfolder and run successfully
+
+Expected the same to happen for `shell` 
+
+```bash
+cd topdir
+flask shell
+>>> 
+```
+
+### Actual Behavior
+
+
+```bash
+cd topdir
+flask shell
+
+# in 0.12.2
+Error: The file/path provided (app.py) does not appear to exist.  Please verify the path is correct.  If app is not on PYTHONPATH, ensure the extension is .py
+
+# n 0.13.dev
+Error: Could not import ""app"".""
+
+```
+
+Looks like the `run` comm","The commands run and shell are behaving differently to locate the app, I can send a PR but first I want to confirm if this is a problem or expected behavior. The command can find the app in the subfolder and run successfully. Looks like the run command is traversing the subfolders to locate an app while the shell command is not doing the same.","The commands run and shell are behaving differently to locate the app, I can send a PR but first I want to confirm if this is a problem or expected behavior. Assuming the tree. The command can find the app in the subfolder and run successfully.",5.0,5.0,5.0,5.0,3.0,3.0,,,,,,,
+676207216,3727,Add environment variable to disable loading entrypoint commands from flask.commands,"<!-- **This issue tracker is a tool to address bugs in Flask itself.
+Please use the Pallets Discord or Stack Overflow for general questions
+about using Flask or issues not related to Flask.** -->
+
+_This is no critical bug and more like an enhancement / proposal._
+
+Some flask extensions populate the entrypoint `flask.commands`, e. g. Flask-Migrate with `db`. Those commands can't later be overwritten with user-defined commands using `app.cli.add_command(my_db_cmnd, name=""db"")`. The only possibility is using `setup.py` and specifying it there. The setup script seems to have priority (for overwriting) but is not really flexible.
+It is also not possible to hide those commands that are defined in other packages.
+
+### Expected Behavior
+
+I should be able to overwrite other entrypoint commands usin","_This is no critical bug and more like an enhancement / proposal._. Some flask extensions populate the entrypoint flask.commands, e. g. Flask-Migrate with db.","Some flask extensions populate the entrypoint flask.commands, e. g. Those commands can't later be overwritten with user-defined commands using app.cli.add_command(my_db_cmnd, name=""db""). I should be able to overwrite other entrypoint commands using my commands. (My commands are specified later(?) and should have priority.) (Or if I just want to disable some pre-defined commands from other packages.).",5.0,2.0,3.0,5.0,5.0,4.0,,,,,,,
+22083471,905,Allow subdomains to work with no SERVER_NAME,"Would you be open to a patch allowing the use of subdomain routing with no SERVER_NAME pre-configured?
+
+The motivation is to allow multiple domains to match a request, just like it does when SERVER_NAME is None, while still benefiting from the nice subdomain matcher. This is particularly useful in DEV to be able to develop on machine.local but also tunnel the instance to a vpn, and use things like xip.io (which all change the host).
+
+The change would probably be mostly focused on create_url_adapter(). I imagine a configuration variable switching a different logic on for this function: it would look for subdomains and deduce the server_name which is the reverse of what's going on today.
+The list of subdomains could come from the configuration I suppose, or better be deduced from the compila","Would you be open to a patch allowing the use of subdomain routing with no SERVER_NAME pre-configured? The motivation is to allow multiple domains to match a request, just like it does when SERVER_NAME is None, while still benefiting from the nice subdomain matcher. If you are not opposed to it, how do you think the implementation should look like?","Would you be open to a patch allowing the use of subdomain routing with no SERVER_NAME pre-configured? The motivation is to allow multiple domains to match a request, just like it does when SERVER_NAME is None, while still benefiting from the nice subdomain matcher. This is particularly useful in DEV to be able to develop on machine.local but also tunnel the instance to a vpn, and use things like xip.io (which all change the host).",5.0,4.0,5.0,5.0,5.0,5.0,,,,,,,
+506209557,3389,Cannot raise HTTPException(),"```python
+from flask_api import FlaskAPI
+from flask import request
+from werkzeug.exceptions import HTTPException
+from flask import json
+
+
+app = FlaskAPI(__name__)
+
+
+@app.errorhandler(HTTPException)
+def handle_exception(e):
+    """"""Return JSON instead of HTML for HTTP errors.""""""
+    # start with the correct headers and status code from the error
+    response = e.get_response()
+    # replace the body with JSON
+    response.data = json.dumps({
+        ""code"": e.code,
+        ""name"": e.name,
+        ""description"": e.description,
+    })
+    response.content_type = ""application/json""
+    return response
+
+
+@app.route('/', methods=['GET'])
+def get_value():
+    key = request.args.get('key')
+
+    if not key:
+        raise HTTPException(""HELLO"")
+
+    return ""done""
+
+
+if __name__ == ""__main__"":
+    app.",When making a request on I get (code omitted). By changing the original code by (code omitted). Another try on I get (code omitted).,When making a request on I get (code omitted). By changing the original code by (code omitted). I thought that the code above will assign the error as HTTP error and I expect the result would return JSON instead of HTML but it doesn't work.,4.0,1.0,2.0,4.0,4.0,3.0,,,,,,,
+810561423,3912,SSL SYSCALL EOF detected,"**Describe the bug**
+cross posted from https://github.com/sqlalchemy/sqlalchemy/issues/5955
+I am really sorry if this is not the right place for this, but I am trying to cover all of my bases, throw out everything I have and see if I get a bite anywhere. Any help you may have to offer is greatly appreciated! 
+
+Hello, we are plagued by the never ending SSL SYSCALL error. We are running out postgres database on an RDS using a db.t2.large. Resource wise it has plenty of space and resources, and the connections are set to an amount that is no where near being hit. We have been plagued with this issue for a long time, but I just recently was assigned to the issue. This tends to happen when we the following uwsgi ini:
+```
+[uwsgi]
+binary-path = /usr/sbin/uwsgi
+virtualenv = /opt/webapps/iamp/venv
+","Describe the bug**. cross posted from. I am really sorry if this is not the right place for this, but I am trying to cover all of my bases, throw out everything I have and see if I get a bite anywhere.","Hello, we are plagued by the never ending SSL SYSCALL error. Sometimes it wont happen right away, but once you start writing to the database we start getting flooded with these. When we turn lazy apps on the ssl syscall issue disappears.",5.0,1.0,2.0,5.0,5.0,4.0,,,,,,,
+314982071,2705,"os.stat(path) TypeError: stat() argument 1 must be encoded string without null bytes, not str","I am trying to read contents of files like .txt,.docx,.pdf and so on with textract and flask microframework. I am using POST method to get input file and send it to textract.
+
+```
+@app.route('/upload', methods=['POST'])
+    def upload():
+        request_file = request.files['file']
+        r = request_file.read()
+        text = textract.process(r)
+        return (text)
+```
+when i uploaded a docx file,
+
+`File ""/usr/lib/python2.7/genericpath.py"", line 26, in exists os.stat(path) TypeError: stat() argument 1 must be encoded string without null bytes, not str 10.0.2.2 -- [17/Apr/2018 03:56:58] ""POST /upload HTTP/1.1"" 500 -`
+
+I don't want to save the file. All i need is to send the file into textract and process the file. I don't want to send the contents of the file. I want to send it as it is",I don't want to save the file. All i need is to send the file into textract and process the file. I don't want to send the contents of the file.,"I am trying to read contents of files like .txt,.docx,.pdf and so on with textract and flask microframework. I am using POST method to get input file and send it to textract. when i uploaded a docx file,.",5.0,3.0,4.0,4.0,4.0,3.0,,,,,,,
+710218622,3770,why flask create a new thread with the same TID that already exists?,"<!-- **This issue tracker is a tool to address bugs in Flask itself.
+Please use the Pallets Discord or Stack Overflow for general questions
+about using Flask or issues not related to Flask.** -->
+
+<!-- If you'd like to report a bug in Flask, fill out the template below. Provide
+any extra information that may be useful / related to your problem.
+Ideally, create an [MCVE](https://stackoverflow.com/help/mcve), which helps us
+understand the problem and helps check that it is not caused by something in
+your code. -->
+In my flask app, I start a dameon thread by:
+```python
+if __name__ == ""__main__"":
+    # daemon thread
+     t = threading.Thread(target=cls.daemon_thread)
+     t.start()
+     app.run(""0.0.0.0"", port=8081, debug=False)
+```
+where cls.daemon_thread is a method of the instance cls. 
+
+##","In my flask app, I start a dameon thread by (code omitted). I start a new thread as a daemon thread to do some timing work and print some log at the same time. when I print the log, I also print PID(Process ID) and TID(Thread ID) to tell me where the log from.","In my flask app, I start a dameon thread by (code omitted). where cls.daemon_thread is a method of the instance cls. I start a new thread as a daemon thread to do some timing work and print some log at the same time.",5.0,4.0,5.0,5.0,3.0,4.0,,,,,,,
+2859813656,5679,How to solve,"```python
+response = {
+        ""status"": ""ok"",
+        ""message"": ""Success"",
+        ""response"": url
+    }
+    return jsonify(response)
+```
+
+In this getting output like this 
+
+```json
+{""message"": ""success"", ""response"": url, ""status"": ""old""}
+```
+
+How to solve that getting incorrect output
+
+I need this like
+
+```
+{
+        ""status"": ""ok"",
+        ""message"": ""Success"",
+        ""response"": url
+    }
+```
+
+How to solve",In this getting output like this. How to solve that getting incorrect output. I need this like. How to solve.,In this getting output like this. How to solve that getting incorrect output. I need this like.,4.0,2.0,2.0,4.0,2.0,2.0,,,,,,,
+29528560,1002,Allow using |tojson in double-quoted HTML attributes again,"I'm in a project where double-quoted HTML attributes is part of the style guide. We're also using data- attributes to pass data to code and consider it a bad practice to render anything directly within scripts.
+
+Being able to remove `|safe` within `<script>` seems convenient at first glance. But after discovering that it changes the behavior of `|tojson` everywhere else when using double-quoted attributes, it doesn't seem as nice. It's just less intuitive overall. Forcing you to use a particular HTML style or requiring `|forceescape` (as opposed to just `|e`) isn't really a great tradeoff for implying `|safe` within `<script>`.
+
+So the underlying question. Can we allow `|tojson` to work within double-quotes attributes again? Or is there some technical reason why we can't. And if not, why n","I'm in a project where double-quoted HTML attributes is part of the style guide. But after discovering that it changes the behavior of |tojson everywhere else when using double-quoted attributes, it doesn't seem as nice. Forcing you to use a particular HTML style or requiring |forceescape (as opposed to just |e) isn't really a great tradeoff for implying |safe within .",I'm in a project where double-quoted HTML attributes is part of the style guide. We're also using data- attributes to pass data to code and consider it a bad practice to render anything directly within scripts. Being able to remove |safe within seems convenient at first glance.,4.0,5.0,4.0,4.0,3.0,3.0,,,,,,,
+320660854,2762,url_for() breaks just before POSTing to a specific endpoint,"### The Problem
+
+I have a few routes which are as follows:
+
+```
+api.auth -> /api/auth
+api.user -> /api/user
+         -> /api/user/<user_id>
+```
+
+Anytime I do a POST to `api.auth`, the variable rules for my routes break when I call `url_for`.
+
+```python
+# Prints `/api/user/1`
+print(url_for(""api.user"", user_id=1))
+
+# Login
+client.post(url_for(""api.auth""), json={
+  ""email"": ""test@test.com"",
+  ""password"": ""password123""
+})
+
+# Prints `/api/user?user_id=1`
+print(url_for(""api.user"", user_id=1))
+
+# Logout
+client.delete(url_for(""api.auth""))
+
+# Prints `/api/user/1`
+print(url_for(""api.user"", user_id=1))
+```
+
+The URL lookups breaking are not a result of something in the `api.auth` views. If I call `url_for` in `post()` or `dispatch_request()` of my AuthAPI view class, it's already broken.
+
+Calling `cli","### The Problem. I have a few routes which are as follows (code omitted). Anytime I do a POST to api.auth, the variable rules for my routes break when I call url_for.","Calling client.post(url_for(""api.auth""), json={...}) multiple times does not undo the problem. The test that is failing (code omitted). The test app and client (code omitted).",5.0,5.0,4.0,5.0,3.0,3.0,,,,,,,
+93504725,1525,Flask + eventlet slow response time,"I have an issue with Flask + eventlet server, details in [this link](http://serverfault.com/q/703992/172260).
+
+I integrated Flask with Openstack keystone middleware to authenticate for my Flask API server.
+
+```
+config_file = None
+if config_file:
+    prepare_service([None, '--config-file', config_file])
+else:
+    prepare_service()
+
+application = setup_app()
+application.wsgi_app = middleware.install_keystone_middleware(application.wsgi_app, cfg.CONF)
+```
+
+I profiled in Flask server and all things is normal, the server running time for each APIs is very low, from 2 to 20 ms.
+
+```
+--------------------------------------------------------------------------------                                           [5994/9927$
+PATH: '/api/line_usages'
+         6913 function calls (6817 primitive calls) in 0","I have an issue with Flask + eventlet server, details in this link. I integrated Flask with Openstack keystone middleware to authenticate for my Flask API server. What is the reason for Flask slow response time and how can I solve this?","I have an issue with Flask + eventlet server, details in this link. I integrated Flask with Openstack keystone middleware to authenticate for my Flask API server. I profiled in Flask server and all things is normal, the server running time for each APIs is very low, from 2 to 20 ms.",5.0,5.0,5.0,5.0,5.0,5.0,,,,,,,
+12662594,706,Review flask-mongo-sessions for approval,"Hello.
+
+I want to propose my small extension _flask-mongo-sessions_ to review for approval.
+The aim of the extension is to provide your sites with server-side sessions stored in MongoDB.
+The project lives [here](https://github.com/ivanyu/flask-mongo-sessions). [Documentation](https://flask-mongo-sessions.readthedocs.org/en/latest/) and [PyPI package](https://pypi.python.org/pypi/flask-mongo-sessions/) are available.
+
+If something is wrong, I'll be glad to receive a feedback.
+
+Regards,
+Ivan.",I want to propose my small extension _flask-mongo-sessions_ to review for approval. The aim of the extension is to provide your sites with server-side sessions stored in MongoDB. The project lives here.,"I want to propose my small extension _flask-mongo-sessions_ to review for approval. The aim of the extension is to provide your sites with server-side sessions stored in MongoDB. If something is wrong, I'll be glad to receive a feedback.",5.0,5.0,5.0,5.0,5.0,5.0,,,,,,,
+675629981,3724,templates not showing <h1> element nor any changes applied to layout.html,"<!-- **This issue tracker is a tool to address bugs in Flask itself.
+Please use the Pallets Discord or Stack Overflow for general questions
+about using Flask or issues not related to Flask.** -->
+
+<!-- If you'd like to report a bug in Flask, fill out the template below. Provide
+any extra information that may be useful / related to your problem.
+Ideally, create an [MCVE](https://stackoverflow.com/help/mcve), which helps us
+understand the problem and helps check that it is not caused by something in
+your code. -->
+
+### Expected Behavior
+<!-- Tell us what should happen. -->
+I cannot make any changes to my cloned Flask app: .https://github.com/cyrilrbt/canadian-nutrient-file
+I used command bin/buildout to rebuild the app after making these changes just in case but it still goes to the original",I cannot make any changes to my cloned Flask app: . I used command bin/buildout to rebuild the app after making these changes just in case but it still goes to the original templates. So I also tried editing the original templates as shown here on line 7 to 9 I inserted (code omitted).,I cannot make any changes to my cloned Flask app: . So I also tried editing the original templates as shown here on line 7 to 9 I inserted (code omitted). Changes to any template are not reflected.,5.0,4.0,4.0,5.0,5.0,4.0,,,,,,,
+506544003,3394,Change celery to app in documentation,"<!-- **This issue tracker is a tool to address bugs in Flask itself.
+Please use the #pocoo IRC channel on freenode or Stack Overflow for general
+questions about using Flask or issues not related to Flask.** -->
+
+<!-- If you'd like to report a bug in Flask, fill out the template below. Provide
+any extra information that may be useful / related to your problem.
+Ideally, create an [MCVE](https://stackoverflow.com/help/mcve), which helps us
+understand the problem and helps check that it is not caused by something in
+your code. -->
+
+
+### Expected Behavior
+Should use clear language and variable names.
+
+Example: https://flask.palletsprojects.com/en/0.12.x/patterns/celery/
+
+### Actual Behavior
+Use the variable celery instead of something like celery_app. Also imports Celery from celery package.
+
+I",Use the variable celery instead of something like celery_app. Also imports Celery from celery package. I would rename the variable celery to celery_app or just app. app makes more sense because it is what is used in Celery documentation.,Should use clear language and variable names. Use the variable celery instead of something like celery_app. Also imports Celery from celery package.,5.0,5.0,5.0,5.0,4.0,4.0,,,,,,,

@@ -1,0 +1,241 @@
+==============================================================================
+GITHUB ISSUE PRIORITY PREDICTION EVALUATION REPORT
+==============================================================================
+Evaluation against hand-annotated Gold Set (N=130 issues).
+DISCLAIMER: Weak supervision was used for ML training. Training excluded all gold issues.
+NOTE ON CLASS EVALUATION: Per-class metrics are reported only for classes with n >= 5.
+Classes with n < 5 are marked as 'not evaluable (n=X)' due to small-sample unreliability.
+
+==============================================================================
+SUBSET: ALL GOLD ISSUES (N=130)
+==============================================================================
+
+--- Baseline: ALWAYS-LOW MAJORITY CLASS ---
+Overall Accuracy         : 77.69%
+Within-One-Level Accuracy: 96.15%
+Mean Absolute Error (MAE): 0.262 levels
+Macro-F1 (n>=5 classes)  : 0.2915 (classes: Low, Medium, High)
+Macro-F1 (Low, Med, High): 0.2915 (Critical dropped)
+Merged High+Critical     : Precision=0.00%, Recall=0.00%, F1=0.0000 (TP=0, FP=0, FN=5, TN=125, Support=5)
+
+
+--- Method: RULE-BASED ---
+Overall Accuracy         : 56.15%
+Within-One-Level Accuracy: 86.15%
+Mean Absolute Error (MAE): 0.623 levels
+Macro-F1 (n>=5 classes)  : 0.4246 (classes: Low, Medium, High)
+Macro-F1 (Low, Med, High): 0.4246 (Critical dropped)
+
+Per-Class Metrics:
+  Class      Precision  Recall     F1-Score   Support 
+  ------------------------------------------------
+  Low        87.14%     60.40%     0.7135     101     
+  Medium     26.47%     37.50%     0.3103     24      
+  High       15.79%     60.00%     0.2500     5       
+  Critical   not evaluable (n=0)              0       
+  ---------------------------------------------------------------------------
+  High+Critical 11.54%     60.00%     0.1935     TP=3, FP=23, FN=2, TN=102  5       
+
+Confusion Matrix (Rows = Ground Truth Gold, Columns = Predicted):
+  Labels order: ['Low', 'Medium', 'High', 'Critical']
+  Low       :     61      24      10       6
+  Medium    :      8       9       6       1
+  High      :      1       1       3       0
+  Critical  :      0       0       0       0
+
+
+--- Method: ML MODEL (LOGISTIC REGRESSION) ---
+Overall Accuracy         : 52.31%
+Within-One-Level Accuracy: 84.62%
+Mean Absolute Error (MAE): 0.662 levels
+Macro-F1 (n>=5 classes)  : 0.3777 (classes: Low, Medium, High)
+Macro-F1 (Low, Med, High): 0.3777 (Critical dropped)
+
+Per-Class Metrics:
+  Class      Precision  Recall     F1-Score   Support 
+  ------------------------------------------------
+  Low        90.00%     53.47%     0.6708     101     
+  Medium     29.55%     54.17%     0.3824     24      
+  High       5.00%      20.00%     0.0800     5       
+  Critical   not evaluable (n=0)              0       
+  ---------------------------------------------------------------------------
+  High+Critical 7.69%      40.00%     0.1290     TP=2, FP=24, FN=3, TN=101  5       
+
+Confusion Matrix (Rows = Ground Truth Gold, Columns = Predicted):
+  Labels order: ['Low', 'Medium', 'High', 'Critical']
+  Low       :     54      28      15       4
+  Medium    :      6      13       4       1
+  High      :      0       3       1       1
+  Critical  :      0       0       0       0
+
+
+--- Method: HYBRID CONSENSUS ---
+Overall Accuracy         : 52.31%
+Within-One-Level Accuracy: 88.46%
+Mean Absolute Error (MAE): 0.623 levels
+Macro-F1 (n>=5 classes)  : 0.4085 (classes: Low, Medium, High)
+Macro-F1 (Low, Med, High): 0.4085 (Critical dropped)
+
+Per-Class Metrics:
+  Class      Precision  Recall     F1-Score   Support 
+  ------------------------------------------------
+  Low        88.52%     53.47%     0.6667     101     
+  Medium     24.44%     45.83%     0.3188     24      
+  High       15.00%     60.00%     0.2400     5       
+  Critical   not evaluable (n=0)              0       
+  ---------------------------------------------------------------------------
+  High+Critical 12.50%     60.00%     0.2069     TP=3, FP=21, FN=2, TN=104  5       
+
+Confusion Matrix (Rows = Ground Truth Gold, Columns = Predicted):
+  Labels order: ['Low', 'Medium', 'High', 'Critical']
+  Low       :     54      32      11       4
+  Medium    :      7      11       6       0
+  High      :      0       2       3       0
+  Critical  :      0       0       0       0
+
+==============================================================================
+SUBSET: RANDOM SUBSET ONLY (N=60)
+==============================================================================
+
+--- Baseline: ALWAYS-LOW MAJORITY CLASS ---
+Overall Accuracy         : 80.00%
+Within-One-Level Accuracy: 96.67%
+Mean Absolute Error (MAE): 0.233 levels
+Macro-F1 (n>=5 classes)  : 0.4444 (classes: Low, Medium)
+Macro-F1 (Low, Med, High): 0.2963 (Critical dropped)
+Merged High+Critical     : Precision=0.00%, Recall=0.00%, F1=0.0000 (TP=0, FP=0, FN=2, TN=58, Support=2)
+
+
+--- Method: RULE-BASED ---
+Overall Accuracy         : 61.67%
+Within-One-Level Accuracy: 91.67%
+Mean Absolute Error (MAE): 0.500 levels
+Macro-F1 (n>=5 classes)  : 0.5158 (classes: Low, Medium)
+Macro-F1 (Low, Med, High): 0.3439 (Critical dropped)
+
+Per-Class Metrics:
+  Class      Precision  Recall     F1-Score   Support 
+  ------------------------------------------------
+  Low        87.18%     70.83%     0.7816     48      
+  Medium     21.43%     30.00%     0.2500     10      
+  High       not evaluable (n=2)              2       
+  Critical   not evaluable (n=0)              0       
+  ---------------------------------------------------------------------------
+  High+Critical 0.00%      0.00%      0.0000     TP=0, FP=7, FN=2, TN=51    2       
+
+Confusion Matrix (Rows = Ground Truth Gold, Columns = Predicted):
+  Labels order: ['Low', 'Medium', 'High', 'Critical']
+  Low       :     34      10       2       2
+  Medium    :      4       3       3       0
+  High      :      1       1       0       0
+  Critical  :      0       0       0       0
+
+
+--- Method: ML MODEL (LOGISTIC REGRESSION) ---
+Overall Accuracy         : 61.67%
+Within-One-Level Accuracy: 91.67%
+Mean Absolute Error (MAE): 0.483 levels
+Macro-F1 (n>=5 classes)  : 0.5421 (classes: Low, Medium)
+Macro-F1 (Low, Med, High): 0.3614 (Critical dropped)
+
+Per-Class Metrics:
+  Class      Precision  Recall     F1-Score   Support 
+  ------------------------------------------------
+  Low        89.19%     68.75%     0.7765     48      
+  Medium     25.00%     40.00%     0.3077     10      
+  High       not evaluable (n=2)              2       
+  Critical   not evaluable (n=0)              0       
+  ---------------------------------------------------------------------------
+  High+Critical 0.00%      0.00%      0.0000     TP=0, FP=7, FN=2, TN=51    2       
+
+Confusion Matrix (Rows = Ground Truth Gold, Columns = Predicted):
+  Labels order: ['Low', 'Medium', 'High', 'Critical']
+  Low       :     33      10       4       1
+  Medium    :      4       4       2       0
+  High      :      0       2       0       0
+  Critical  :      0       0       0       0
+
+
+--- Method: HYBRID CONSENSUS ---
+Overall Accuracy         : 63.33%
+Within-One-Level Accuracy: 95.00%
+Mean Absolute Error (MAE): 0.433 levels
+Macro-F1 (n>=5 classes)  : 0.5481 (classes: Low, Medium)
+Macro-F1 (Low, Med, High): 0.3654 (Critical dropped)
+
+Per-Class Metrics:
+  Class      Precision  Recall     F1-Score   Support 
+  ------------------------------------------------
+  Low        91.89%     70.83%     0.8000     48      
+  Medium     23.53%     40.00%     0.2963     10      
+  High       not evaluable (n=2)              2       
+  Critical   not evaluable (n=0)              0       
+  ---------------------------------------------------------------------------
+  High+Critical 0.00%      0.00%      0.0000     TP=0, FP=6, FN=2, TN=52    2       
+
+Confusion Matrix (Rows = Ground Truth Gold, Columns = Predicted):
+  Labels order: ['Low', 'Medium', 'High', 'Critical']
+  Low       :     34      11       2       1
+  Medium    :      3       4       3       0
+  High      :      0       2       0       0
+  Critical  :      0       0       0       0
+
+==============================================================================
+HELD-OUT WEAK-LABEL AGREEMENT (TRAINING FIDELITY)
+==============================================================================
+Weak-label agreement on 20% validation split: 74.72%
+Macro-F1 on weak labels: 0.5783
+LABELLED CLEARLY AS AGREEMENT, NOT HUMAN ACCURACY.
+==============================================================================
+
+==============================================================================
+DEV (N=65) / TEST (N=65) STRATIFIED SPLIT & THRESHOLD OPTIMIZATION
+==============================================================================
+130 gold issues split 50/50 into dev and test, stratified by gold label (seed=42).
+Medium (1..3) and High (3..6) score thresholds swept strictly on DEV.
+Selection criterion: dev Macro-F1 across Low, Medium, High.
+
+Dev class distribution : {'Low': 51, 'Medium': 12, 'High': 2}
+Test class distribution: {'Low': 50, 'Medium': 12, 'High': 3}
+
+--- THRESHOLD SWEEP TABLE ON DEV (65 ISSUES) ---
+T_med   T_high   Dev Macro-F1   High+ Prec   High+ Rec   High+ F1   TP   FP  
+------------------------------------------------------------------------
+1       3        0.4232         7.69%        50.00%      0.1333     1    12  
+1       4        0.4519         11.11%       50.00%      0.1818     1    8   
+1       5        0.4973         16.67%       50.00%      0.2500     1    5   
+1       6        0.3932         0.00%        0.00%       0.0000     0    3   
+2       3        0.3991         7.69%        50.00%      0.1333     1    12  
+2       4        0.4337         11.11%       50.00%      0.1818     1    8   
+2       5        0.4831         16.67%       50.00%      0.2500     1    5   
+2       6        0.3821         0.00%        0.00%       0.0000     0    3   
+3       4        0.3941         11.11%       50.00%      0.1818     1    8   
+3       5        0.4596         16.67%       50.00%      0.2500     1    5   
+3       6        0.3692         0.00%        0.00%       0.0000     0    3   
+
+Optimal Setting Chosen by Dev Macro-F1: T_med=1, T_high=5 (Dev Macro-F1: 0.4973)
+
+--- SINGLE UNBIASED EVALUATION ON TEST SET (65 ISSUES) ---
+Setting                                Accuracy   Macro-F1   High+ Prec   High+ Rec   High+ F1   TP   FP  
+---------------------------------------------------------------------------------------------------
+Dev-Tuned Pick (T_med=1, T_high=5)     52.31%     0.4416     16.67%       66.67%      0.2667     2    10  
+Original Thresholds (T_med=1, T_high=4) 50.77%     0.3880     11.76%       66.67%      0.2000     2    15  
+
+==============================================================================
+1000-RESAMPLE BOOTSTRAP 95% CONFIDENCE INTERVALS
+==============================================================================
+Empirical 2.5% and 97.5% percentiles computed over 1000 bootstrap resamples (seed=42).
+Demonstrates estimation variance, especially for rare classes like High (n=5 overall, n=3 test).
+
+--- Scope: ALL 130 GOLD ISSUES ---
+  Always-Low Baseline     : Acc 95% CI=[70.8%, 84.6%]  Macro-F1 95% CI=[0.2763, 0.3056]  High+ Rec 95% CI=[0.0%, 0.0%]  High+ Prec 95% CI=[0.0%, 0.0%]
+  Rule-Based Scorer       : Acc 95% CI=[47.7%, 64.6%]  Macro-F1 95% CI=[0.3279, 0.5198]  High+ Rec 95% CI=[0.0%, 100.0%]  High+ Prec 95% CI=[0.0%, 25.0%]
+  ML Model (LogisticReg)  : Acc 95% CI=[43.8%, 60.8%]  Macro-F1 95% CI=[0.3004, 0.4664]  High+ Rec 95% CI=[0.0%, 100.0%]  High+ Prec 95% CI=[0.0%, 19.4%]
+  Hybrid Consensus        : Acc 95% CI=[43.8%, 61.5%]  Macro-F1 95% CI=[0.3079, 0.5149]  High+ Rec 95% CI=[0.0%, 100.0%]  High+ Prec 95% CI=[0.0%, 26.3%]
+
+--- Scope: TEST SET ONLY (N=65) ---
+  Always-Low Baseline     : Acc 95% CI=[66.2%, 87.7%]  Macro-F1 95% CI=[0.2654, 0.3115]  High+ Rec 95% CI=[0.0%, 0.0%]  High+ Prec 95% CI=[0.0%, 0.0%]
+  Rule-Based Scorer       : Acc 95% CI=[38.5%, 63.1%]  Macro-F1 95% CI=[0.2569, 0.5187]  High+ Rec 95% CI=[0.0%, 100.0%]  High+ Prec 95% CI=[0.0%, 29.4%]
+  ML Model (LogisticReg)  : Acc 95% CI=[35.4%, 58.5%]  Macro-F1 95% CI=[0.2507, 0.4943]  High+ Rec 95% CI=[0.0%, 100.0%]  High+ Prec 95% CI=[0.0%, 33.3%]
+  Hybrid Consensus        : Acc 95% CI=[35.4%, 58.5%]  Macro-F1 95% CI=[0.2392, 0.4925]  High+ Rec 95% CI=[0.0%, 100.0%]  High+ Prec 95% CI=[0.0%, 27.8%]
+

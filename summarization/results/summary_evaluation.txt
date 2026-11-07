@@ -1,0 +1,17 @@
+======================================================================
+GITHUB ISSUE SUMMARIZATION EVALUATION REPORT
+======================================================================
+Total issues analyzed in dataset    : 2,769
+Issues with substantive prose (>40w): 1,679
+
+--- 1. PROXY QUALITY METRICS ---
+Mean summary length                 : 44.9 words (std: 15.5)
+Mean compression ratio              : 45.1% reduction
+Title-keyword coverage              : 51.7%
+Tracebacks encountered in dataset   : 312
+Tracebacks with key_error extracted : 296 (94.9%)
+
+--- 2. ROUGE EVALUATION ON REFERENCE SUMMARIES ---
+Reference file 'C:\Users\HP\OneDrive\Desktop\nlp\github_intelligence_platform\summarization\data\summary_references.csv' is present with 15 sampled issues,
+but the 'reference_summary' column is currently empty.
+ACTION REQUIRED: Annotate reference summaries by hand to compute ROUGE scores.

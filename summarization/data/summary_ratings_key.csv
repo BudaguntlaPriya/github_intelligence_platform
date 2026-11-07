@@ -1,0 +1,31 @@
+issue_id,issue_number,title,summary_a_method,summary_b_method
+1059169545,4351,"ImportError when trying to start flask app, but no stack trace printed",textrank,lead3
+283231015,2564,session.new is never true,lead3,textrank
+51245069,1271,Route parameter types,lead3,textrank
+1671470213,5070,pip install flask-sqlalchemy  Fails,lead3,textrank
+324805213,2794,Python flask threads does not close,textrank,lead3
+605286138,3583,Why is it so difficult for flask_apscheduler to get the flask context??,textrank,lead3
+1344746641,4775,Flask flashing behaviour different in production compared with using flask development server,textrank,lead3
+2982932759,5711,close resources before reload (option --reload),lead3,textrank
+172235467,1986,Setting items on `response.header` with bytestrings results in new headers in Python 3,lead3,textrank
+3372901713,5804,3.1.2 regression: `stream_with_context` triggers `teardown_request()` calls before response generation,lead3,textrank
+1473561545,4893,flask.url_for no longer supporting values parameter,textrank,lead3
+1211017088,4546,JSON data goes to method if not consumed,lead3,textrank
+133181907,1725,"Run Flask in Thread, user the main thread for own logic?",lead3,textrank
+29353123,999,send_file in combination with chrome on android,textrank,lead3
+743313698,3833,Web site / documentation: Should tell what Flask *is*,textrank,lead3
+290359679,2604,Flask shell: Give readline a completer that is aware of shell context,textrank,lead3
+315511857,2706,Different app discovery behavior on commands run and shell,textrank,lead3
+676207216,3727,Add environment variable to disable loading entrypoint commands from flask.commands,lead3,textrank
+22083471,905,Allow subdomains to work with no SERVER_NAME,textrank,lead3
+506209557,3389,Cannot raise HTTPException(),textrank,lead3
+810561423,3912,SSL SYSCALL EOF detected,lead3,textrank
+314982071,2705,"os.stat(path) TypeError: stat() argument 1 must be encoded string without null bytes, not str",textrank,lead3
+710218622,3770,why flask create a new thread with the same TID that already exists?,textrank,lead3
+2859813656,5679,How to solve,textrank,lead3
+29528560,1002,Allow using |tojson in double-quoted HTML attributes again,textrank,lead3
+320660854,2762,url_for() breaks just before POSTing to a specific endpoint,lead3,textrank
+93504725,1525,Flask + eventlet slow response time,textrank,lead3
+12662594,706,Review flask-mongo-sessions for approval,lead3,textrank
+675629981,3724,templates not showing <h1> element nor any changes applied to layout.html,lead3,textrank
+506544003,3394,Change celery to app in documentation,textrank,lead3

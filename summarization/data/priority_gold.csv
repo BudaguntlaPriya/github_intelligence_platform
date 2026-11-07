@@ -1,0 +1,131 @@
+issue_id,issue_number,title,gold_priority,sample
+253511596,2456,The request method to another website in views function didn't run correctly,Low,random
+165660897,1955,Flask Test Client fails to get on subdomains with explicit port 80,Medium,random
+1325659517,4725,Flask test does not work after 2.2.0 update (with sqlalchemy dependency),Low,random
+538577705,3447,Flask crashes when running as a Windows Service (pywin32),Low,random
+425870767,3131,can't run app with latest Werkzeug,Low,random
+27228710,976,"""import os"" statement missing from tutorial",Low,random
+177648512,2027,Update app factory docs for Flask's CLI,Low,random
+208781793,2188,Input stream not automatically drained at teardown.,High,random
+303741200,2655,CSRF session Token is missing(400 Bad Request),Low,random
+988084376,4256,Flask logger does not work when served with an ASGI server like Uvicorn,Low,random
+80395735,1471,Adding after_server_run,Low,random
+8651894,639,Get HTTP_REFERER in flask,Low,random
+43971306,1188,[Website] Documentation PDF and zipped HTML download links return 404,Low,random
+706111852,3761,A Flask app holds a reference to itself,Low,random
+2643276,367,support for HTTP/1.1 Transfer-Encoding: chunked,High,random
+1328537495,4739,Tests failing on latest Flask version 2.2.1,Medium,random
+162390462,1933,JSON Parsing on empty request content with RequestParser,Low,random
+2864025,381,Consider debug=True in test client.,Low,random
+89312486,1506,flash(...) won't work!,Low,random
+839751956,3945,window server 2019 run sometimes request timeout need press enter,Low,random
+409677,143,Pointless example for Signal.connected_to,Low,random
+1897450561,5256,"AsyncToSync error with Flask Async, Gunicorn and Gevent",Low,random
+1325854662,4728,`Flask test` does not work (tables not created) after 2.2.0 update,Low,random
+2125368248,5407,Extend Config type,Low,random
+448470200,3218,Use @property as a decorator,Low,random
+465354956,3291,Custom Response force_type is now never called,Low,random
+453394356,3252,Should _get_exc_class_and_code method have param entry for the docstring?,Low,random
+449928531,3223,AttributeError: 'NoneType' object has no attribute 'append' in Flask helpers.py,Medium,random
+80355465,1470,route function quit unexpectedly,Low,random
+15061802,757,Is there best solution for http client connection pool?,Low,random
+739561,216,flask has no programmatically-accessible version number,Low,random
+549813540,3469,Cannot set SameSite=None on session cookie,Medium,random
+365026948,2927,'301' is not a recognized HTTP error code,Medium,random
+177978173,2030,Support same-site cookies,Low,random
+3118265,399,Collab me!,Low,random
+1551848735,4950,Edit README.rst in examples/tutorial,Low,random
+68830397,1437,Flask won't start in the Python 3.4 debugger,Medium,random
+316465705,2715,E-commerce,Low,random
+856180265,3959,Docs - Testing Flask Applications,Low,random
+1114516889,4431,First Tutorial Step Returns 404,Low,random
+2383749248,5513,Handler `before_request` doesn't work as expected.,Low,random
+26546877,968,"GET params discarded by flask test client, when using full url",Medium,random
+25668647,953,flaskr Stored XSS [FIX],Medium,random
+98580902,1545,Request.form data dict... Could we modify the structure?,Low,random
+51307180,1272,Time for a new release ?,Low,random
+87626660,1497,Feedback Links - 404 Error,Low,random
+162275632,1931,dialogue box?,Low,random
+8222425,631,Add config parser to blueprints,Low,random
+1148483800,4464,docs: 'Sending Requests with the Test Client' references non-existent 'query' parameter,Low,random
+161126295,1919,Remove easy_install from installation docs,Low,random
+11467881,686,Raise 400 JSONBadRequest instead of KeyError when accessing JSON request data,Low,random
+150137620,1787,database: persistent connetion,Low,random
+803783664,3902,flask.run(post_func)?,Low,random
+24939500,939,Default HTML errors don't tell their encoding and aren't HTML5,Low,random
+462714178,3275,"flask requires `is_package` from import loaders, however this api is optional since PEP 451",Medium,random
+607796,177,Tutorial should mention deployment with mod_wsgi or something else,Low,random
+9224033,651,Cannot start Flask application in a thread other than main,Medium,random
+1282069482,4650,There is a typo in the docs relating to javascript,Low,random
+891913578,4054,Unused import statement in docs /quickstart/#variable-rules code block.,Low,random
+360930219,2911,Flaskr tutorial: auth.py raise a type error: tuple indices must be integers not str,Low,random
+261827816,2479,Flask crashes on startup,Low,severity_enriched
+272459422,2514,Unable to generate the PDF version of the documentation,Low,severity_enriched
+2214364118,5448,Use of `hashlib.sha1` causes issue in FIPS build,Low,severity_enriched
+474810515,3318,Provide secure default hash function for SecureCookieSessionInterface digest_method,Low,severity_enriched
+1016069103,4291,MethodView Decorators list execution order,Low,severity_enriched
+1110466467,4427,Not sanitising JSON,Low,severity_enriched
+1083403,248,Review JSON Security,Low,severity_enriched
+1015374712,4288,2.0.2: test suite is failing,Low,severity_enriched
+430342825,3143,"I am not an expert, but I want to solve this error: AssertionError: View function mapping is overwriting an existing endpoint function: register",Low,severity_enriched
+710218622,3770,why flask create a new thread with the same TID that already exists?,Low,severity_enriched
+4240346845,5991,<spam>,Low,severity_enriched
+22066857,903,How to generate a SecureCookie in latest version?,Low,severity_enriched
+1617909280,5021,Update Flask to work with Werkzeug 2.2.3 due to open CVE,Low,severity_enriched
+1323121988,4714,deprecate `FLASK_ENV`,Low,severity_enriched
+672678698,3718,Testing tutorial doc is not working,Low,severity_enriched
+1993088827,5337,"Incompatible return value type: got ""werkzeug.wrappers.response.Response"", expected ""flask.wrappers.Response""",Medium,severity_enriched
+348970116,2882,"RuntimeError: can't start new thread, Exception happened during processing of request from",Low,severity_enriched
+293382861,2616,A setup function was called after the first request was handled,Low,severity_enriched
+394933030,3055,How to connect SQL sever/MSSQL database with flask are there any libraries available,Low,severity_enriched
+479715600,3330,test_client.set_cookie does not seem to work,Medium,severity_enriched
+1243838589,4604,Update of the downloadable documentation of flask2.0,Low,severity_enriched
+3760584280,5870,Teardown handler chain exception handling,Medium,severity_enriched
+1006040,241,Tutorial Step 4 : teardown code sample is not well formated,Low,severity_enriched
+42894221,1177,Should jsonify() throw an exception when provided a list?,Low,severity_enriched
+5235325319,6139,AI junk,Low,severity_enriched
+265465,100,Inconsistency in docs/testing.rst,Low,severity_enriched
+791572812,3874,flask doesn't return http error 413 if file too large,Low,severity_enriched
+122908796,1656,Injecting Flask vulnerability issue,Low,severity_enriched
+4029297,481,Add a FORCE_URL_SCHEME option,Low,severity_enriched
+891337682,4043,Older versions (1.x.x) of flask pin some dependencies in a way that could cause issues,Low,severity_enriched
+1180664011,4494,Flask failing to startup due to Jinja2 breaking change,Medium,comments_ge_8
+6599530,587,Python 3 port is available,Low,comments_ge_8
+97603199,1541,Returned 200 for illegal request url,Low,comments_ge_8
+24038750,925,Message Flashing's implementation is broken and should be removed anyway,Low,comments_ge_8
+17693672,824,"url_for(*args, _external=True) doesn't add the port to the full url",Medium,comments_ge_8
+34637893,1073,Python Flask Gevent stack - Simple “Hello World” app shows as inefficient when benchmarked,Low,comments_ge_8
+183184421,2058,The file/path provided (flaskr) does not appear to exist.,Low,comments_ge_8
+243739140,2421,Tutorial: step 3 (Installing as package) needs rationale,Low,comments_ge_8
+160923345,1916,Document option to use simplejson,Low,comments_ge_8
+439394187,3168,Improve warning about dev server use in production,Low,comments_ge_8
+109844328,1578,Update docs on the website (at least the python 3 ones),Low,comments_ge_8
+27045851,974,jsonify() ignores the sort order of an OrderedDict,Medium,comments_ge_8
+98738618,1548,Support zero-ceremony sub-app mounting (including Blueprints),Low,comments_ge_8
+2808103,378,jsonify should set the charset,Low,comments_ge_8
+3056108555,5729,The `template_filter` decorator doesn't work if you don't pass an argument,Medium,comments_ge_8
+18949094,857,Exception when trying to run Flask app via CGIHandler,Low,comments_ge_8
+15112234,760,blueprint.route methods argument typo throws unclear exception,Low,comments_ge_8
+6847308,593,Nestable blueprints,Low,comments_ge_8
+334084050,2838,Logging example fails outside request context,Low,comments_ge_8
+1662940,323,SERVER_NAME set to 127.0.0.1:5000 in dev breaks flash method,Low,comments_ge_8
+158967570,1893,Travis 3.3-devel job fails with error about urllib2 in Werkzeug,Low,label_bug_blocker
+281111473,2549,"""Request.is_xhr deprecated"" warning during jsonify()",Medium,label_bug_blocker
+318707851,2743,Documentation search broken,Low,label_bug_blocker
+158315713,1877,jsonify no longer causes Content-Length to be set on returned Response object,Medium,label_bug_blocker
+714071806,3776,request.endpoint always None in SessionInterface.open_session,Medium,label_bug_blocker
+25029556,941,Registering a handler for HTTPException has no effect,High,label_bug_blocker
+175228022,2005,AttributeError: 'DispatchingApp' object has no attribute 'config',Medium,label_bug_blocker
+30626788,1011,Python 3.4 changed `pkgutil.get_loader` behavior,High,label_bug_blocker
+67637251,1427,Bug in send_file with temp files,High,label_bug_blocker
+475411162,3320,Version tag mismatch in link to example projects from docs,Low,label_bug_blocker
+2614169547,5621,Rotating secret keys,Low,created_2021_or_later
+1513879653,4930,Testing with authenticated and anonymous client at the same time gives mixed results,Low,created_2021_or_later
+4257048423,5993,<spam>,Low,created_2021_or_later
+1637931953,5031,URL Hack?,Low,created_2021_or_later
+890100916,4023,Flask no longer provides `flask._compat` module,Medium,created_2021_or_later
+1241657164,4599,Very strange error,Low,created_2021_or_later
+3641367090,5848,Add copy-to-clipboard button for code blocks in Flask documentation.,Low,created_2021_or_later
+898937174,4099,Harmless race condition in tutorial,Low,created_2021_or_later
+3235106841,5776,Looser type annotations for send_file() path_or_file argument,Medium,created_2021_or_later
+890161208,4025,"Flask 1.1.2 accidentally ships with `itsdangerous` v2, hence ignores `simplejson`",Medium,created_2021_or_later

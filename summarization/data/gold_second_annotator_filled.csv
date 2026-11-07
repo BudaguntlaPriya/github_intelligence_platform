@@ -1,0 +1,2739 @@
+issue_id,issue_number,title,description,teammate_priority,teammate_reason
+607796,177,Tutorial should mention deployment with mod_wsgi or something else,"Many people struggle with deploying a simple Flask application. The tutorial should show that and provide some helpful pointers to other parts of the documentation that handle deployment.
+
+Related feedback issues:
+- http://feedback.flask.pocoo.org/message/105
+",Low,Request to improve deployment documentation and tutorial pointers.
+2383749248,5513,Handler `before_request` doesn't work as expected.,"I want to implement CORS processing without any third party libraries (like flask-cors). My desire is simple: assign multiple headers to any response, access and process the pre-flight OPTIONS request.
+
+```python
+class CORSMiddleware:
+    def before_request(self):
+        if request.method == ""OPTIONS"":
+            response = jsonify({""status"": ""ok""})
+            return self.process_response(response)
+
+    def after_request(self, response):
+        return self.process_response(response)
+
+    # noinspection PyMethodMayBeStatic
+    def process_response(self, response):
+        if response:
+            response.headers.add(""Access-Control-Allow-Origin"", ""*"")
+            response.headers.add(""Access-Control-Allow-Headers"", ""Content-Type, Authorization"")
+            response.headers.add(""Access-Control-Allow-Methods"", ""GET, POST, OPTIONS, DELETE, PUT"")
+        return response
+
+    def register(self, app: Flask):
+        app.before_request(self.before_request)
+        app.after_request(self.after_request)
+```
+
+It can be tested like this
+
+```py
+
+# Note: helper function to reduce view logic
+def add_cors_headers(response):
+    response.headers.add(""Access-Control-Allow-Origin"", ""*"")
+    response.headers.add(""Access-Control-Allow-Headers"", ""Content-Type,Authorization"")
+    response.headers.add(""Access-Control-Allow-Methods"", ""GET,POST,OPTIONS,DELETE,PUT"")
+    return response
+
+
+user_blueprint = Blueprint(""user"", __name__, url_prefix=""/users"")
+
+
+@user_blueprint.route(""/signup"", methods=[""POST"", ""OPTIONS""])
+def create_user_handler():
+    # Note: uncomment me to see a desired behaviour
+    # if request.method == ""OPTIONS"":
+    #     response = jsonify({""status"": ""ok""})
+    #     return add_cors_headers(response)
+    # response = jsonify({""message"": ""registered""})
+    # return add_cors_headers(response)
+    return {""message"": ""registered""}
+
+
+def create_app() -> Flask:
+    app = Flask(__name__)
+    app.register_blueprint(user_blueprint)
+    # Note: comment me to see a desired behaviour
+    CORSMiddleware().register(app)
+    return app
+
+
+if __name__ == ""__main__"":
+    app = create_app()
+    app.run(host=""127.0.0.1"", port=5000, debug=True
+```
+
+With the middleware, it handles a preflight OPTIONS request as an original one:
+<img width=""650"" alt=""Screenshot 2024-07-01 at 10 59 27"" src=""https://github.com/pallets/flask/assets/45794357/b49f736d-5b1b-46c7-8569-aa6dd178266c"">
+
+But the desired behaviour should be like that (you can comment middleware registration and uncomment logic in the view-handler):
+<img width=""653"" alt=""Screenshot 2024-07-01 at 11 00 15"" src=""https://github.com/pallets/flask/assets/45794357/9668ea85-de6a-46c2-8c8c-39b9b1ffd7b7"">
+
+Also, I was able to implement desired functionality with the middleware, but with the Werkzeug one:
+
+```py
+from werkzeug.wrappers import Request, Response
+
+
+class CORSMiddleware:
+    def __init__(self, app):
+        self.app = app
+
+    def __call__(self, environ, start_response):
+        request_ = Request(environ)
+
+        if request_.method == ""OPTIONS"":
+            response = Response(status=200)
+            response = self.process_response(response)
+            return response(environ, start_response)
+
+        def custom_start_response(status, headers, exc_info=None):
+            response_headers = self.process_headers(headers)
+            return start_response(status, response_headers, exc_info)
+
+        return self.app(environ, custom_start_response)
+
+    def process_response(self, response):
+        response.headers.add(""Access-Control-Allow-Origin"", ""*"")
+        response.headers.add(""Access-Control-Allow-Headers"",
+                             ""Content-Type, Authorization"")
+        response.headers.add(""Access-Control-Allow-Methods"",
+                             ""GET, POST, OPTIONS, DELETE, PUT"")
+        return response
+
+    def process_headers(self, headers):
+        headers.append((""Access-Control-Allow-Origin"", ""*""))
+        headers.append((""Access-Control-Allow-Headers"", ""Content-Type, Authorization""))
+        headers.append(
+            (""Access-Control-Allow-Methods"", ""GET, POST, OPTIONS, DELETE, PUT""))
+        return headers
+
+
+# and registering it like that
+def create_app() -> Flask:
+    app = Flask(__name__)
+    app.register_blueprint(user_blueprint)
+    app.wsgi_app = CORSMiddleware(app.wsgi_app)
+    return app
+```
+
+So, my question is: what could be wrong with the Flask middleware?",Low,User inquiry asking for help/explanation regarding custom CORS middleware pattern in before_request.
+839751956,3945,window server 2019 run sometimes request timeout need press enter,"<!--
+This issue tracker is a tool to address bugs in Flask itself. Please use
+Pallets Discord or Stack Overflow for questions about your own code.
+
+Replace this comment with a clear outline of what the bug is.
+-->
+
+<!--
+Describe how to replicate the bug.
+
+Include a minimal reproducible example that demonstrates the bug.
+Include the full traceback if there was an exception.
+-->
+
+<!--
+Describe the expected behavior that should have happened but didn't.
+-->
+
+Environment:
+
+- Python version:3.9
+- Flask version:1.1
+",Low,Windows console QuickEdit freeze issue with no issue body details provided.
+549813540,3469,Cannot set SameSite=None on session cookie,"<!-- **This issue tracker is a tool to address bugs in Flask itself.
+Please use the #pocoo IRC channel on freenode or Stack Overflow for general
+questions about using Flask or issues not related to Flask.** -->
+
+<!-- If you'd like to report a bug in Flask, fill out the template below. Provide
+any extra information that may be useful / related to your problem.
+Ideally, create an [MCVE](https://stackoverflow.com/help/mcve), which helps us
+understand the problem and helps check that it is not caused by something in
+your code. -->
+
+
+
+### Expected Behavior
+<!-- Tell us what should happen. -->
+I should be able to set `SESSION_COOKIE_SAMESITE` to ""None"" in order to explicitly set `SameSite=None` on my session cookie.
+
+This will allow my flask application to be loaded in an iframe with the session.
+
+```python
+app.config['SESSION_COOKIE_SAMESITE'] = ""None""
+```
+
+### Actual Behavior
+<!-- Tell us what happens instead. -->
+Today I can only set `SESSION_COOKIE_SAMESITE` to ""Strict"", ""Lax"", or `None`.
+
+If set to `None`, it will actually _not_ set a SameSite attribute at all on the session cookie, which Chrome will treat as `SameSite=Lax` [starting in Chrome 80](https://web.dev/samesite-cookies-explained/).
+
+I need to be able to set SESSION_COOKIE_SAMESITE to explicitly ""None"", thus causing `SameSite=None` to be set on the cookie, which in turn allows the cookie to be sent in cross-origin requests, such as when my flask application is loaded in an iframe.
+
+As it is, these applications load in an iframe without a session cookie, which breaks their functionality.
+
+### Environment
+
+* Python version: 3.7.4
+* Flask version: 1.1.1
+* Werkzeug version: 0.16.0
+
+Note related Werkzeug issue which is tied up with the 1.0 release: https://github.com/pallets/werkzeug/issues/1549
+
+
+```pytb
+2020-01-14T20:33:48.807523+00:00 app[web.1]: Traceback (most recent call last):
+2020-01-14T20:33:48.807525+00:00 app[web.1]: File ""/app/.heroku/python/lib/python3.7/site-packages/gunicorn/workers/sync.py"", line 135, in handle
+2020-01-14T20:33:48.807528+00:00 app[web.1]: self.handle_request(listener, req, client, addr)
+2020-01-14T20:33:48.807530+00:00 app[web.1]: File ""/app/.heroku/python/lib/python3.7/site-packages/gunicorn/workers/sync.py"", line 176, in handle_request
+2020-01-14T20:33:48.807534+00:00 app[web.1]: respiter = self.wsgi(environ, resp.start_response)
+2020-01-14T20:33:48.807536+00:00 app[web.1]: File ""/app/.heroku/python/lib/python3.7/site-packages/flask/app.py"", line 2463, in __call__
+2020-01-14T20:33:48.807538+00:00 app[web.1]: return self.wsgi_app(environ, start_response)
+2020-01-14T20:33:48.807540+00:00 app[web.1]: File ""/app/.heroku/python/lib/python3.7/site-packages/flask/app.py"", line 2449, in wsgi_app
+2020-01-14T20:33:48.807542+00:00 app[web.1]: response = self.handle_exception(e)
+2020-01-14T20:33:48.807544+00:00 app[web.1]: File ""/app/.heroku/python/lib/python3.7/site-packages/flask/app.py"", line 1866, in handle_exception
+2020-01-14T20:33:48.807546+00:00 app[web.1]: reraise(exc_type, exc_value, tb)
+2020-01-14T20:33:48.807548+00:00 app[web.1]: File ""/app/.heroku/python/lib/python3.7/site-packages/flask/_compat.py"", line 39, in reraise
+2020-01-14T20:33:48.807549+00:00 app[web.1]: raise value
+2020-01-14T20:33:48.807551+00:00 app[web.1]: File ""/app/.heroku/python/lib/python3.7/site-packages/flask/app.py"", line 2446, in wsgi_app
+2020-01-14T20:33:48.807553+00:00 app[web.1]: response = self.full_dispatch_request()
+2020-01-14T20:33:48.807554+00:00 app[web.1]: File ""/app/.heroku/python/lib/python3.7/site-packages/flask/app.py"", line 1952, in full_dispatch_request
+2020-01-14T20:33:48.807556+00:00 app[web.1]: return self.finalize_request(rv)
+2020-01-14T20:33:48.807557+00:00 app[web.1]: File ""/app/.heroku/python/lib/python3.7/site-packages/flask/app.py"", line 1969, in finalize_request
+2020-01-14T20:33:48.807559+00:00 app[web.1]: response = self.process_response(response)
+2020-01-14T20:33:48.807560+00:00 app[web.1]: File ""/app/.heroku/python/lib/python3.7/site-packages/flask/app.py"", line 2268, in process_response
+2020-01-14T20:33:48.807562+00:00 app[web.1]: self.session_interface.save_session(self, ctx.session, response)
+2020-01-14T20:33:48.807563+00:00 app[web.1]: File ""/app/.heroku/python/lib/python3.7/site-packages/flask/sessions.py"", line 387, in save_session
+2020-01-14T20:33:48.807565+00:00 app[web.1]: samesite=samesite,
+2020-01-14T20:33:48.807567+00:00 app[web.1]: File ""/app/.heroku/python/lib/python3.7/site-packages/werkzeug/wrappers/base_response.py"", line 481, in set_cookie
+2020-01-14T20:33:48.807568+00:00 app[web.1]: samesite=samesite,
+2020-01-14T20:33:48.807570+00:00 app[web.1]: File ""/app/.heroku/python/lib/python3.7/site-packages/werkzeug/http.py"", line 1161, in dump_cookie
+2020-01-14T20:33:48.807571+00:00 app[web.1]: raise ValueError(""invalid SameSite value; must be 'Strict', 'Lax' or None"")
+2020-01-14T20:33:48.807573+00:00 app[web.1]: ValueError: invalid SameSite value; must be 'Strict', 'Lax' or None```",Medium,Cannot configure SameSite=None on session cookies due to Werkzeug validation error affecting cross-origin iframes.
+25029556,941,Registering a handler for HTTPException has no effect,"When registering a handler for `werkzeug.exceptions.HTTPException`, it has no effect when an HTTP error is raised.
+
+Assume the following handler:
+
+``` python
+@app.errorhandler(HTTPException)
+def http_err_handler(error):
+    response = jsonify({
+        ""success"": False, 
+        ""message"": error.name
+    })
+    response.status_code = error.code
+    return response
+```
+
+When requesting a page for which no route exists, a JSON response should be returned by the error handler, but instead, the usual `Flask`-generated HTTP error page is returned.
+
+On the other hand, if the error handler is defined to handle a specific error code (by passing the error code to the `app.errorhandler` decorator), the exception is trapped and the JSON message returned.
+
+As `wekzeug.exceptions.HTTPException` is the class raised internally by the `abort()` function, why isn't it possible to create a ""catch-all"" handler like this? Am I missing something?
+",Medium,"Catch-all errorhandler(HTTPException) does not trigger for unrouted pages, though specific status code handlers work."
+9224033,651,Cannot start Flask application in a thread other than main,"Starting a Flask application in a thread other than the main thread does not work and produces the following:
+- Running on http://0.0.0.0:5000/
+  Exception in thread flask_application_thread:
+  Traceback (most recent call last):
+  File ""/opt/python2.7/lib/python2.7/threading.py"", line 551, in __bootstrap_inner
+    self.run()
+  File ""harness.py"", line 23, in run
+    self.__application.run(host = '0.0.0.0', debug = True)
+  File ""/opt/python2.7/lib/python2.7/site-packages/Flask-0.9-py2.7.egg/flask/app.py"", line 739, in run
+    run_simple(host, port, self, **options)
+  File ""/opt/python2.7/lib/python2.7/site-packages/Werkzeug-0.8.3-py2.7.egg/werkzeug/serving.py"", line 615, in run_simple
+    run_with_reloader(inner, extra_files, reloader_interval)
+  File ""/opt/python2.7/lib/python2.7/site-packages/Werkzeug-0.8.3-py2.7.egg/werkzeug/serving.py"", line 529, in run_with_reloader
+    signal.signal(signal.SIGTERM, lambda *args: sys.exit(0))
+  ValueError: signal only works in main thread
+
+Is there a workaround. I've tried using multiprocessing.Process which is no an option in my application.
+
+Thanks.
+",Medium,"app.run(debug=True) fails in non-main threads due to signal reloader, resolvable by disabling the reloader."
+710218622,3770,why flask create a new thread with the same TID that already exists?,"<!-- **This issue tracker is a tool to address bugs in Flask itself.
+Please use the Pallets Discord or Stack Overflow for general questions
+about using Flask or issues not related to Flask.** -->
+
+<!-- If you'd like to report a bug in Flask, fill out the template below. Provide
+any extra information that may be useful / related to your problem.
+Ideally, create an [MCVE](https://stackoverflow.com/help/mcve), which helps us
+understand the problem and helps check that it is not caused by something in
+your code. -->
+In my flask app, I start a dameon thread by:
+```python
+if __name__ == ""__main__"":
+    # daemon thread
+     t = threading.Thread(target=cls.daemon_thread)
+     t.start()
+     app.run(""0.0.0.0"", port=8081, debug=False)
+```
+where cls.daemon_thread is a method of the instance cls. 
+
+### Expected Behavior
+<!-- Tell us what should happen. -->
+I start a new thread as a daemon thread to do some timing work and print some log at the same time. And the flask request 
+will print some log too.
+when I print the log, I also print PID(Process ID) and TID(Thread ID) to tell me  where the log from.
+
+
+### Actual Behavior
+<!-- Tell us what happens instead. -->
+``` Bash
+
+L1:[2020-09-25 22:24:48,449 PID: 27642 TID: 140167677339392] INFO :  daemon thread output 
+L2:[2020-09-25 22:24:48,549 PID: 27642 TID: 140167677339392] INFO :  daemon thread output 
+L3:[2020-09-25 22:25:00,863 PID: 27642 TID: 140167677339392] INFO :  flask request output
+L4:[2020-09-25 22:25:01,174 PID: 27642 TID: 140167677339392] INFO :    flask request output
+```
+When the I start the app, it works well, but after hours later, It  goes wrong. As u can see, L1 L2 are logs from daemon, and the TID of the daemon is **140167677339392**, but in the next request in L3, L4, flask starts a new thread with the same TID to deal with  the request. And the log from daemon thread never appears again.
+
+### Environment
+
+* Python version: 3.7.7
+* Flask version:1.1.2
+* Werkzeug version:1.0.1
+
+",Low,User inquiry misunderstanding OS thread ID recycling in Python threading.
+18949094,857,Exception when trying to run Flask app via CGIHandler,"I have a very simple app. It runs fine when the module (itself calling `app.run()`) is run.
+
+However, when I try to run the app via CGI on Apache 2 using this `.cgi` script:
+
+``` python
+#!/usr/bin/env python
+
+from wsgiref.handlers import CGIHandler
+from someapp import app
+
+CGIHandler().run(app)
+```
+
+it results in an exception:
+
+``` pytb
+Traceback (most recent call last):
+  File ""/usr/lib/python2.7/wsgiref/handlers.py"", line 85, in run
+    self.result = application(self.environ, self.start_response)
+  File ""/home/user/projects/SomeProject/venv/lib/python2.7/site-packages/flask/app.py"", line 1836, in __call__
+    return self.wsgi_app(environ, start_response)
+  File ""/home/user/projects/SomeProject/venv/lib/python2.7/site-packages/flask/app.py"", line 1812, in wsgi_app
+    ctx = self.request_context(environ)
+  File ""/home/user/projects/SomeProject/venv/lib/python2.7/site-packages/flask/app.py"", line 1773, in request_context
+    return RequestContext(self, environ)
+  File ""/home/user/projects/SomeProject/venv/lib/python2.7/site-packages/flask/ctx.py"", line 247, in __init__
+    self.match_request()
+  File ""/home/user/projects/SomeProject/venv/lib/python2.7/site-packages/flask/ctx.py"", line 286, in match_request
+    self.url_adapter.match(return_rule=True)
+  File ""/home/user/projects/SomeProject/venv/lib/python2.7/site-packages/werkzeug/routing.py"", line 1386, in match
+    self.subdomain, path_info.lstrip('/'))
+AttributeError: 'NoneType' object has no attribute 'lstrip'
+```
+
+The setup is Flask 0.10.1 with Werkzeug 0.9.4.
+
+On first sight, the WSGI environment variables seem to be incomplete, or something like that.
+",Medium,AttributeError when PATH_INFO is None under wsgiref CGIHandler on Apache.
+3760584280,5870,Teardown handler chain exception handling,"Flask executes registered teardown handlers (used for closing DB connections, releasing locks, etc.) in a chain. The do_teardown_request method which is supposed to make these teardown requests does not wrap individual handlers in a try/except block. If one handler raises an exception, the loop terminates immediately, and all subsequent handlers are skipped, this can lead to the application to skip critical cleanup routines if a non critical one fails.
+
+Sample reproduction code
+```python
+import threading
+import time
+import requests
+from flask import Flask
+
+app = Flask(__name__)
+
+#a simulation of a limited resource pool
+mock_db_connections = 0
+
+@app.route('/')
+def index():
+    global mock_db_connections
+    mock_db_connections = mock_db_connections + 1
+    return ""Request Processed""
+
+#simulating a critical teardown handler which is supposed to free resources from the db
+@app.teardown_request
+def critical_db_close(exc):
+    global mock_db_connections
+    mock_db_connections = mock_db_connections - 1
+
+#teardown handler which can crash
+@app.teardown_request
+def buggy_extension(exc):
+    raise Exception(""Crash in buggy extension!"")
+
+def run_server():
+    #just for clearner output
+    import logging
+    log = logging.getLogger('werkzeug')
+    log.setLevel(logging.ERROR)
+    app.logger.disabled = True
+    
+    app.run(port=5000, threaded=True)
+
+def verify_bug():
+    
+    print(f""Initial DB Connections: {mock_db_connections}"")
+    
+    try:
+        requests.get('http://127.0.0.1:5000/')
+    except Exception:
+        pass
+
+    #wait time to ensure teardown has happened in the other thread
+    time.sleep(1)
+    
+    print(f""Final DB Connections: {mock_db_connections}"")
+    
+    if mock_db_connections > 0:
+        print(""Teardown Chain Broken"")
+    else:
+        print(""Failed to reproduce"")
+
+server_thread = threading.Thread(target=run_server, daemon=True)
+server_thread.start()
+verify_bug()
+```",Medium,Unhandled exception in one teardown handler prevents subsequent cleanup handlers from executing.
+453394356,3252,Should _get_exc_class_and_code method have param entry for the docstring?,"Currently the `_get_exc_class_and_code` method does not have `:param:` entry for `exc_class_or_code`.
+
+If so, I can add `:param:` entry for methods which does not contain `:param:` entry.
+
+https://github.com/pallets/flask/blob/d4b688bd035b9704b3168b28fed39c8fcfe3b997/src/flask/app.py#L1334-L1346",Low,Documentation and docstring param tag inquiry for private internal method.
+34637893,1073,Python Flask Gevent stack - Simple “Hello World” app shows as inefficient when benchmarked,"I have the following simple ""Hello World"" app:
+
+```
+from gevent import monkey
+monkey.patch_all()
+from flask import Flask
+from gevent import wsgi
+
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+  return 'Hello World'
+
+server = wsgi.WSGIServer(('127.0.0.1', 5000), app)
+server.serve_forever()
+```
+
+As you can see it's pretty straightforward.
+
+The problem is that despite such simpliness it's pretty slow/inefficient as the following benchmark (made with Apache Benchmark) shows:
+
+```
+ab -k -n 1000 -c 100 http://127.0.0.1:5000/
+
+Benchmarking 127.0.0.1 (be patient)
+Completed 100 requests
+Completed 200 requests
+Completed 300 requests
+Completed 400 requests
+Completed 500 requests
+Completed 600 requests
+Completed 700 requests
+Completed 800 requests
+Completed 900 requests
+Completed 1000 requests
+Finished 1000 requests
+
+
+Server Software:        
+Server Hostname:        127.0.0.1
+Server Port:            5000
+
+Document Path:          /
+Document Length:        11 bytes
+
+Concurrency Level:      100
+Time taken for tests:   1.515 seconds
+Complete requests:      1000
+Failed requests:        0
+Write errors:           0
+Keep-Alive requests:    0
+Total transferred:      146000 bytes
+HTML transferred:       11000 bytes
+Requests per second:    660.22 [#/sec] (mean)
+Time per request:       151.465 [ms] (mean)
+Time per request:       1.515 [ms] (mean, across all concurrent requests)
+Transfer rate:          94.13 [Kbytes/sec] received
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        0    0   0.6      0       3
+Processing:     1  145  33.5    149     191
+Waiting:        1  144  33.5    148     191
+Total:          4  145  33.0    149     191
+
+Percentage of the requests served within a certain time (ms)
+  50%    149
+  66%    157
+  75%    165
+  80%    173
+  90%    183
+  95%    185
+  98%    187
+  99%    188
+ 100%    191 (longest request)
+```
+
+Eventually increasing the number of connections and/or concurrency doesn't bring better results, in fact it becomes worse.
+
+What I'm most concerned about is the fact that I can't go over 700 **Requests per second** and a **Transfer rate** of 98 Kbytes/sec.
+
+Also, the individual **Time per request** seems to be too much.
+
+I got curious about what Python and Gevent are doing in the background, or better, what the OS is doing, so I used a **strace** to determine eventual system-side issues and here's the result:
+
+```
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+ 56.46    0.000284           0      1386           close
+ 24.25    0.000122           0      1016           write
+ 10.74    0.000054           0      1000           send
+  4.17    0.000021           0      3652      3271 open
+  2.19    0.000011           0       641           read
+  2.19    0.000011           0      6006           fcntl64
+  0.00    0.000000           0         1           waitpid
+  0.00    0.000000           0         1           execve
+  0.00    0.000000           0         3           time
+  0.00    0.000000           0        12        12 access
+  0.00    0.000000           0        32           brk
+  0.00    0.000000           0         5         1 ioctl
+  0.00    0.000000           0      5006           gettimeofday
+  0.00    0.000000           0         4         2 readlink
+  0.00    0.000000           0       191           munmap
+  0.00    0.000000           0         1         1 statfs
+  0.00    0.000000           0         1         1 sigreturn
+  0.00    0.000000           0         2           clone
+  0.00    0.000000           0         2           uname
+  0.00    0.000000           0        21           mprotect
+  0.00    0.000000           0        69        65 _llseek
+  0.00    0.000000           0        71           rt_sigaction
+  0.00    0.000000           0         1           rt_sigprocmask
+  0.00    0.000000           0         3           getcwd
+  0.00    0.000000           0         1           getrlimit
+  0.00    0.000000           0       243           mmap2
+  0.00    0.000000           0      1838       748 stat64
+  0.00    0.000000           0        74           lstat64
+  0.00    0.000000           0       630           fstat64
+  0.00    0.000000           0         1           getuid32
+  0.00    0.000000           0         1           getgid32
+  0.00    0.000000           0         1           geteuid32
+  0.00    0.000000           0         1           getegid32
+  0.00    0.000000           0         4           getdents64
+  0.00    0.000000           0         3         1 futex
+  0.00    0.000000           0         1           set_thread_area
+  0.00    0.000000           0         2           epoll_ctl
+  0.00    0.000000           0        12         1 epoll_wait
+  0.00    0.000000           0         1           set_tid_address
+  0.00    0.000000           0        26           clock_gettime
+  0.00    0.000000           0         2           openat
+  0.00    0.000000           0         1           set_robust_list
+  0.00    0.000000           0         1           eventfd2
+  0.00    0.000000           0         1           epoll_create1
+  0.00    0.000000           0         1           pipe2
+  0.00    0.000000           0         1           socket
+  0.00    0.000000           0         1           bind
+  0.00    0.000000           0         1           listen
+  0.00    0.000000           0      1000           accept
+  0.00    0.000000           0         1           getsockname
+  0.00    0.000000           0      2000      1000 recv
+  0.00    0.000000           0         1           setsockopt
+------ ----------- ----------- --------- --------- ----------------
+100.00    0.000503                 24977      5103 total
+```
+
+As you can see there are 5103 errors, the worst offender being the **open** **syscall** which I suspect has to do with files not being found (**ENOENT**). To my surprise **epoll** didn't look like a _troubler_, as I heard of many horror stories about it.
+
+I wish to post the full **strace** which goes into the detail of every single call, but it is way too large.
+
+A final note; I also set the following system parameters (which are the maximum allowed amount) hoping it would change the situation but it didn't:
+
+```
+echo “32768   61000″ > /proc/sys/net/ipv4/ip_local_port_range
+sysctl -w fs.file-max=128000
+sysctl -w net.ipv4.tcp_keepalive_time=300
+sysctl -w net.core.somaxconn=61000
+sysctl -w net.ipv4.tcp_max_syn_backlog=2500
+sysctl -w net.core.netdev_max_backlog=2500
+ulimit -n 1024
+```
+
+My question is, given that the sample I'm using can't be changed so much to fix these issues, where should I look to correct them?
+
+For a comparison I made the following ""Hello World"" script with Wheezy.web & Gevent and I got ~2000 Requests per second:
+
+```
+from gevent import monkey
+monkey.patch_all()
+from gevent import pywsgi
+from wheezy.http import HTTPResponse
+from wheezy.http import WSGIApplication
+from wheezy.routing import url
+from wheezy.web.handlers import BaseHandler
+from wheezy.web.middleware import bootstrap_defaults
+from wheezy.web.middleware import path_routing_middleware_factory
+
+def helloworld(request):
+    response = HTTPResponse()
+    response.write('hello world')
+    return response
+
+
+routes = [
+    url('hello', helloworld, name='helloworld')
+]
+
+
+options = {}
+main = WSGIApplication(
+    middleware=[
+        bootstrap_defaults(url_mapping=routes),
+        path_routing_middleware_factory
+    ],
+    options=options
+)
+
+
+server = pywsgi.WSGIServer(('127.0.0.1', 5000), main, backlog=128000)
+server.serve_forever()
+```
+
+And the benchmark results:
+
+```
+ab -k -n 1000 -c 1000 http://127.0.0.1:5000/hello
+
+Benchmarking 127.0.0.1 (be patient)
+Completed 100 requests
+Completed 200 requests
+Completed 300 requests
+Completed 400 requests
+Completed 500 requests
+Completed 600 requests
+Completed 700 requests
+Completed 800 requests
+Completed 900 requests
+Completed 1000 requests
+Finished 1000 requests
+
+
+Server Software:        
+Server Hostname:        127.0.0.1
+Server Port:            5000
+
+Document Path:          /front
+Document Length:        11 bytes
+
+Concurrency Level:      1000
+Time taken for tests:   0.484 seconds
+Complete requests:      1000
+Failed requests:        0
+Write errors:           0
+Keep-Alive requests:    0
+Total transferred:      170000 bytes
+HTML transferred:       11000 bytes
+Requests per second:    2067.15 [#/sec] (mean)
+Time per request:       483.758 [ms] (mean)
+Time per request:       0.484 [ms] (mean, across all concurrent requests)
+Transfer rate:          343.18 [Kbytes/sec] received
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        0    8  10.9      0      28
+Processing:     2   78  39.7     56     263
+Waiting:        2   78  39.7     56     263
+Total:         18   86  42.6     66     263
+
+Percentage of the requests served within a certain time (ms)
+  50%     66
+  66%     83
+  75%    129
+  80%    131
+  90%    152
+  95%    160
+  98%    178
+  99%    182
+ 100%    263 (longest request)
+```
+
+I find Wheezy.web's speed great, but I'd still like to use Flask as it's far simpler and less time consuming to work with.
+",Low,General performance benchmarking inquiry regarding gevent WSGI server configuration.
+449928531,3223,AttributeError: 'NoneType' object has no attribute 'append' in Flask helpers.py,"Occasionally, upon logging out of the flask server, this error occurs. Possibly a race condition between flashing a message and not being logged in?
+
+### Expected Behavior
+
+Expect no error, or to exit gracefully.
+
+### Actual Behavior
+
+Get the error: `AttributeError: 'NoneType' object has no attribute 'append'`
+
+```pytb
+File /home/venv/lib/python3.7/site-packages/flask/app.py line 1832 in full_dispatch_request
+rv = self.dispatch_request()
+File /home/venv/lib/python3.7/site-packages/flask/app.py line 1818 in dispatch_request
+return self.view_functions[rule.endpoint](**req.view_args)
+File /home/venv/lib/python3.7/site-packages/flask_login/utils.py line 260 in decorated_view
+return current_app.login_manager.unauthorized()
+File /home/venv/lib/python3.7/site-packages/flask_login/login_manager.py line 167 in unauthorized
+flash(self.login_message, category=self.login_message_category)
+File /home/venv/lib/python3.7/site-packages/flask/helpers.py line 409 in flash
+flashes.append((category, message))
+AttributeError: 'NoneType' object has no attribute 'append'
+```
+
+### Environment
+
+* Python version: 3.7
+* Flask version: 1.0.3
+",Medium,Intermittent AttributeError in flash() helper when session flash list is None or cleared concurrently.
+1016069103,4291,MethodView Decorators list execution order,"Hello, I was experimenting with the option to add decorators to a view via the `decorators` class variable, which contains the list of the different decorators. ([Flask docs - decorating views](https://flask.palletsprojects.com/en/2.0.x/views/#decorating-views))
+
+So in order to decorate a MethodView method, we can't do this:
+```python
+# Example 1
+class Example(MethodView):
+    @user_required
+    @data_required
+    def get(self):
+        ...
+```
+But we must do this instead:
+```python
+# Example 2
+class Example(MethodView):
+    decorators = [user_required, data_required]
+    def get(self):
+        ...
+```
+This is totally fine, but there is an issue with the way it has been implemented.
+
+The natural order of decorators (or should I say wrapper) execution is from top to bottom.
+In my first example (the natural way you would decorate a function) you suppose the code in the first decorator (`user_required`) to be executed first and then the code from the second decorator (`data_required`) → `user_required(data_required(view))`.
+
+The thing is in the implementation of the `decorators` class variable the decorators in the list are applied in the wrong (or unnatural) order:
+```python
+# from Flask source code (views.py -> View class)
+if cls.decorators:
+    ...
+    for decorator in cls.decorators:
+        view = decorator(view)
+```
+This will execute the second decorator (`data_required`) before the first one in the list (`user_required`) which is very confusing and unnatural → `data_required(user_required(view))`.
+
+Just imagine that the first decorator (`user_required`) exposes the `user` variable to the `g` variable (`g.user`).
+The second decorator (`data_required`) pulls data from the user but as it is implemented, this would throw an error as the `user_required` decorator hasn't been executed yet.
+
+I suggest reversing the order of the decorators before applying them to the view method:
+```python
+if cls.decorators:
+    ...
+    for decorator in revesed(cls.decorators):
+        view = decorator(view)
+```
+It would feel more natural and lead to less confusion...",Low,Inquiry and proposal regarding MethodView decorator list execution order.
+425870767,3131,can't run app with latest Werkzeug,"**This issue tracker is a tool to address bugs in Flask itself.
+Please use the #pocoo IRC channel on freenode or Stack Overflow for general
+questions about using Flask or issues not related to Flask.**
+
+If you'd like to report a bug in Flask, fill out the template below. Provide
+any extra information that may be useful / related to your problem.
+Ideally, create an [MCVE](https://stackoverflow.com/help/mcve), which helps us
+understand the problem and helps check that it is not caused by something in
+your code.
+
+---
+
+### Expected Behavior
+
+run should work
+
+this is the project can reproduce the bug
+
+```python
+https://github.com/cielpy/flask_bug
+
+pipenv install
+pipenv run python run.py
+```
+
+### Actual Behavior
+
+crashed
+
+```pytb
+$ pipenv run python run.py
+ * Serving Flask app ""app"" (lazy loading)
+ * Environment: production
+   WARNING: Do not use the development server in a production environment.
+   Use a production WSGI server instead.
+ * Debug mode: on
+ * Running on http://0.0.0.0:5000/ (Press CTRL+C to quit)
+ * Restarting with stat
+Traceback (most recent call last):
+  File ""run.py"", line 3, in <module>
+    app.run(host='0.0.0.0', debug=True)
+  File ""/Users/xxx/Documents/workspace/flask_bug/.venv/lib/python3.6/site-packages/flask/app.py"", line 943, in run
+    run_simple(host, port, self, **options)
+  File ""/Users/xxx/Documents/workspace/flask_bug/.venv/lib/python3.6/site-packages/werkzeug/serving.py"", line 988, in run_simple
+    run_with_reloader(inner, extra_files, reloader_interval, reloader_type)
+  File ""/Users/xxx/Documents/workspace/flask_bug/.venv/lib/python3.6/site-packages/werkzeug/_reloader.py"", line 332, in run_with_reloader
+    sys.exit(reloader.restart_with_reloader())
+  File ""/Users/xxx/Documents/workspace/flask_bug/.venv/lib/python3.6/site-packages/werkzeug/_reloader.py"", line 176, in restart_with_reloader
+    exit_code = subprocess.call(args, env=new_environ, close_fds=False)
+  File ""/Users/xxx/.pyenv/versions/3.6.5/lib/python3.6/subprocess.py"", line 267, in call
+    with Popen(*popenargs, **kwargs) as p:
+  File ""/Users/xxx/.pyenv/versions/3.6.5/lib/python3.6/subprocess.py"", line 709, in __init__
+    restore_signals, start_new_session)
+  File ""/Users/xxx/.pyenv/versions/3.6.5/lib/python3.6/subprocess.py"", line 1344, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/xxx/Documents/workspace/flask_bug/run.py': '/Users/xxx/Documents/workspace/flask_bug/run.py'
+```
+
+### Environment
+
+* Python version: 3.6.5
+* Flask version: 1.0.2
+* Werkzeug version: 0.15.1
+
+with Werkzeug 0.14.1, this will not happened",Medium,Werkzeug 0.15.1 reloader incompatibility causes FileNotFoundError when restarting via pipenv.
+243739140,2421,Tutorial: step 3 (Installing as package) needs rationale,"Step 3 of the tutorial ([installing flaskr as a package](http://flask.pocoo.org/docs/0.12/tutorial/packaging/)) needs rationale at the top. As it stands, that section of the tutorial tells the user out of the blue that they should install their webapp as a package, but doesn't say why. The user can already run their webapp via `flask run`, so it's not clear why they should at this point set up and install their package into their venv.
+",Low,Tutorial documentation improvement requesting rationale for packaging step.
+109844328,1578,Update docs on the website (at least the python 3 ones),"The website gives a very outdated view on the python 3 issue:
+http://flask.pocoo.org/docs/0.10/python3/
+
+This seems to be updated to make it a lot more realistic, but is not online:
+https://github.com/mitsuhiko/flask/blob/master/docs/python3.rst
+
+This RST file also seems to give a very different view than the dedicated python3 one:
+https://github.com/mitsuhiko/flask/blob/master/docs/advanced_foreword.rst
+",Low,Request to update outdated Python 3 documentation on the website.
+68830397,1437,Flask won't start in the Python 3.4 debugger,"Test code:
+
+```
+import flask
+app = flask.Flask()
+app.run
+```
+
+Run like this:
+
+```
+$ pdb3 test.py
+> /home/tkcook/scratch/python/test.py(1)<module>()
+-> import flask
+(Pdb) cont
+Traceback (most recent call last):
+  File ""/usr/lib/python3.4/importlib/util.py"", line 95, in find_spec
+    spec = module.__spec__
+AttributeError: 'module' object has no attribute '__spec__'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File ""/usr/lib/python3.4/pkgutil.py"", line 481, in find_loader
+    spec = importlib.util.find_spec(fullname)
+  File ""/usr/lib/python3.4/importlib/util.py"", line 97, in find_spec
+    raise ValueError('{}.__spec__ is not set'.format(name))
+ValueError: __main__.__spec__ is not set
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File ""/usr/lib/python3.4/pdb.py"", line 1661, in main
+    pdb._runscript(mainpyfile)
+  File ""/usr/lib/python3.4/pdb.py"", line 1542, in _runscript
+    self.run(statement)
+  File ""/usr/lib/python3.4/bdb.py"", line 431, in run
+    exec(cmd, globals, locals)
+  File ""<string>"", line 1, in <module>
+  File ""/home/tkcook/scratch/python/test.py"", line 1, in <module>
+    import flask
+  File ""/usr/lib/python3/dist-packages/flask/app.py"", line 331, in __init__
+    instance_path = self.auto_find_instance_path()
+  File ""/usr/lib/python3/dist-packages/flask/app.py"", line 622, in auto_find_instance_path
+    prefix, package_path = find_package(self.import_name)
+  File ""/usr/lib/python3/dist-packages/flask/helpers.py"", line 661, in find_package
+    loader = pkgutil.get_loader(root_mod_name)
+  File ""/usr/lib/python3.4/pkgutil.py"", line 467, in get_loader
+    return find_loader(fullname)
+  File ""/usr/lib/python3.4/pkgutil.py"", line 487, in find_loader
+    raise ImportError(msg.format(fullname, type(ex), ex)) from ex
+ImportError: Error while finding loader for '__main__' (<class 'ValueError'>: __main__.__spec__ is not set)
+Uncaught exception. Entering post mortem debugging
+Running 'cont' or 'step' will restart the program
+> /usr/lib/python3.4/pkgutil.py(487)find_loader()
+-> raise ImportError(msg.format(fullname, type(ex), ex)) from ex
+```
+
+Is there a workaround for this?
+",Medium,Python 3.4 debugger importlib crash during module inspection.
+1243838589,4604,Update of the downloadable documentation of flask2.0,"I would love to be able to download the latest flask2.0 docs as it's always a good resource and since the update of flask the docs have been updated online but the downloadable versions are still in flask1.x.x
+![flask](https://user-images.githubusercontent.com/55891685/169630359-e2941ef1-62c6-47d6-ac43-85fbfeedadf1.png)
+
+",Low,User request for updated downloadable documentation builds for Flask 2.0.
+24038750,925,Message Flashing's implementation is broken and should be removed anyway,"Message flashing as implemented in Flask is currently broken, under certain conditions it's possible for messages to be flashed to the wrong tab or in extreme cases the wrong device/browser.
+
+A correct implementation would require functionality beyond Flask's scope, message flashing itself is arguably beyond Flask's scope already.
+
+Why not make a piss-poor user account system that exists solely in session cookies? It seems like the same logic behind Flask's message flashing functionality.
+",Low,Subjective architectural critique and proposal to deprecate message flashing.
+5235325319,6139,AI junk,"## Summary
+
+Multiple security vulnerabilities in Flask: CRITICAL code execution via exec() in config.py, HIGH path traversal in 5 locations.
+
+## Vulnerabilities Found
+
+1. **CRITICAL** `config.py:209` - Code Execution via exec() in from_pyfile
+   exec(compile(config_file.read(), filename, ""exec""), d.__dict__) executes arbitrary Python code from a file.
+
+2. **HIGH** `config.py:204` - Path Traversal in from_pyfile
+   filename = os.path.join(self.root_path, filename) without sanitization. Absolute paths bypass root_path.
+
+3. **HIGH** `config.py:290` - Path Traversal in from_file
+   Same os.path.join pattern without validation.
+
+4. **HIGH** `app.py:441` - Path Traversal in open_resource
+   path = os.path.join(self.root_path, resource) without path validation.
+
+5. **HIGH** `app.py:463` - Path Traversal in open_instance_resource
+   Same pattern.
+
+6. **HIGH** `blueprints.py:123` - Path Traversal in open_resource
+   os.path.join without traversal protection.
+
+7. **MEDIUM** `cli.py:1023` - Code Execution via eval() in shell_command
+   eval(compile(f.read(), startup, ""exec"")) on PYTHONSTARTUP env var.
+
+## Recommended Fix
+
+1. Use werkzeug.utils.safe_join for all path operations
+2. Validate that resolved paths stay within intended directories
+3. Document/document-warn on exec/eval usage in config loading
+
+## Note
+Several of these are documented Flask features (loading config from Python files is designed to exec code). However, the path traversal combined with env-var-configurable filenames may not be intended.
+",Low,Bogus automated security scanner report on standard config.from_pyfile behavior.
+89312486,1506,flash(...) won't work!,"Hello!
+The flash(...) function doesn't work at me – it raises an internal server error!
+
+My code:
+@app.route('/')
+def main():
+    flash('This message will be visible!')
+    return str(get_flashed_messages())
+
+that's all! And with just return ""xxx"" it works.
+
+What's the problem? I'm using python 2.6.
+",Low,User support question caused by missing secret_key required for session flashing.
+80395735,1471,Adding after_server_run,"It would be nice to have a feature that would let a function be called after the server is started. As far as I've seen there is no such feature.
+",Low,Feature request proposing an after_server_run hook.
+2614169547,5621,Rotating secret keys,"I'd like to have a couple of secret keys available, like so
+```
+app.secret_keys = [
+   'key-1',
+   'key-2',
+]
+```
+To allow them to rotate.
+
+I've seen this issue which seems to have auto-closed
+https://github.com/pallets/flask/issues/1574
+
+It seems like itsdangerous now supports this
+https://github.com/pallets/itsdangerous/pull/141
+
+This would allow secret keys to be rotated regularly without sessions being invalidated.
+",Low,Feature request proposing support for multiple rotating secret keys.
+8651894,639,Get HTTP_REFERER in flask,"Hello
+
+First, sorry for my english.
+
+I have problem. I need HTTP_REFERER, like php to hotlinks protection.
+
+in request.headers i have
+Content-Length:
+User-Agent: Mozilla/5.0 (Windows NT 5.1; rv:16.0) Gecko/20100101 Firefox/16.0
+Connection: keep-alive
+Host: dbooks.local:8080
+Cache-Control: max-age=0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,_/_;q=0.8
+Accept-Language: pl,en-us;q=0.7,en;q=0.3
+Content-Type:
+Accept-Encoding: gzip, deflate
+
+But i don't have HTTP_REFERER.
+What i can do with this?
+",Low,User question asking how to access the HTTP Referer header.
+3641367090,5848,Add copy-to-clipboard button for code blocks in Flask documentation.,"### Description
+
+I propose to add a ""copy to clipboard"" button next to all code blocks in the Flask documentation. This will allow users to easily copy example code or command-line snippets with a single click instead of manually selecting the text. This feature greatly improves usability and convenience, especially on mobile devices.
+
+Flask documentation uses Sphinx for static site generation, and there is an existing Sphinx extension called [sphinx-copybutton](https://sphinx-copybutton.readthedocs.io/en/latest/) that provides this functionality out of the box. It can be enabled by simply adding it to the `extensions` list in the Sphinx `conf.py` file.
+
+
+This extension also supports stripping common prompts (like `>>>`, `$`) from copied content, making the copied snippets cleaner.
+
+### Problem this resolves
+
+Currently, users have to manually select and copy code blocks, which can be error-prone and inconvenient. Adding a copy button makes the process faster and less error-prone.
+
+### Additional notes
+
+- The change is additive and does not affect existing documentation content or structure.
+- This enhancement aligns Flask docs with modern documentation practices seen in many popular projects.
+
+I am happy to implement this feature and create a pull request once the issue is approved.
+
+",Low,Feature request to add copy-to-clipboard buttons in Sphinx documentation.
+87626660,1497,Feedback Links - 404 Error,"The two links on (http://flask.pocoo.org/community/) to give feedback (http://feedback.flask.pocoo.org/) throw a 404 error.
+",Low,Broken website documentation link returning 404 error.
+4240346845,5991,<spam>,Invalid AI security slop,Low,Spam / invalid issue submission.
+394933030,3055,How to connect SQL sever/MSSQL database with flask are there any libraries available,"**This issue tracker is a tool to address bugs in Flask itself.
+Please use the #pocoo IRC channel on freenode or Stack Overflow for general
+questions about using Flask or issues not related to Flask.**
+
+If you'd like to report a bug in Flask, fill out the template below. Provide
+any extra information that may be useful / related to your problem.
+Ideally, create an [MCVE](https://stackoverflow.com/help/mcve), which helps us
+understand the problem and helps check that it is not caused by something in
+your code.
+
+---
+
+### Expected Behavior
+
+Tell us what should happen.
+
+```python
+Paste a minimal example that causes the problem.
+```
+
+### Actual Behavior
+
+Tell us what happens instead.
+
+```pytb
+Paste the full traceback if there was an exception.
+```
+
+### Environment
+
+* Python version:
+* Flask version:
+* Werkzeug version:
+",Low,User inquiry asking for MSSQL database integration library recommendations.
+8222425,631,Add config parser to blueprints,"I think that it would be useful to be able to add configuration items to a blueprint and then have those merged into the app configuration on load. My thinking is simply that there might be configurations specific to your blueprint that should have default values stored as part of the blueprint. I suppose this feature could also lead to use cases where people make blueprint simply to hold different configuration for the application.
+",Low,Feature proposal to add blueprint-scoped configuration support.
+253511596,2456,The request method to another website in views function didn't run correctly,"### Unexpected Behavior
+
+   I have a simple function to get json data from a website using ""POST"" method, for convenience, I save it as get_music.py file. Here is the code.
+   ```python
+import requests
+def get_music():
+    baseUrl = ""http://music.163.com/api/search/get/""
+    parameters = {
+        's': ""acg"",
+        'limit': 100,
+        'type': 1
+    }
+    response = requests.post(baseUrl, data=parameters)
+    answer = response.json()
+    return answer
+```
+and when we call the function, a json data will returned, that's no problems. But when i call it in the views function, things become strange. here is views.py.
+```python
+from .get_music import get_music
+from flask import render_template
+from . import main
+
+@main.route('/', methods=['GET', 'POST'])
+def index():
+    music = get_music()
+    return render_template(""index.html"", music=music)
+```
+  When I run the flask program, the json data is "" {'msg': ""Request method 'GET' not supported"", 'code': 400}"", it's not correct. 
+  After debug i found the request method is ""GET"" when i use flask, but if  run the get_music.py without flask , the request method is ""POST"". it's any problem in views funtion change the request method?
+",Low,User question regarding external HTTP requests inside a Flask view function.
+43971306,1188,[Website] Documentation PDF and zipped HTML download links return 404,"http://flask.pocoo.org/docs/flask-docs.pdf
+
+http://flask.pocoo.org/docs/flask-docs.zip
+",Low,Broken website documentation download links returning 404.
+25668647,953,flaskr Stored XSS [FIX],"HI, I was testing flaskr because I want to use it (for my website).
+When you write javascript code into the text form a XSS appear:
+
+![2014-01-15-190432_2732x768_scrot](https://f.cloud.github.com/assets/3002802/1923112/2799e6e4-7e10-11e3-8daa-be6684a86c89.png)
+
+So, we have to fix it editing show_entries.html:
+"" { entry.title }} {{ entry.text| safe }} ""
+
+replacing it for : 
+"" {{ entry.title }} {{ entry.text }} ""
+
+Now, if I wirte the js code again, the xss will disappear:
+
+![2014-01-15-190923_2732x768_scrot](https://f.cloud.github.com/assets/3002802/1923162/d5009e40-7e10-11e3-8288-f76a0be4b0ad.png)
+
+<svg/onload=confirm(document.cookie);>
+
+EDIT : I guess that it's an intentional vulnerability but is not the correct way to do it, we(my team and I) will continue writing it to improve the ""example code""
+Regards
+",Medium,Stored XSS vulnerability in flaskr tutorial example template due to unsafe filter usage.
+150137620,1787,database: persistent connetion,"Hi,
+
+I wonder where I should keep the persistent db connection throughout the application, not the request/response context. I read the doc and examples, it looks to me, the persistent connections are made for the request/response life cycle.
+
+People recommend to use a connection pool. Then where should I keep the pool? I use cassandra database. The cluster session does a lot heavy lifting, and automatically manage pool connections. It is nice that user need not worry about the pool management, but it is also expensive, and I should keep it alive on the server throughout the life time of the thread.
+
+For a single thread flask server, it is easy, I just initialize the connection, and put it in the global namespace. But somehow it does not work when I use gunicorn to pre-fork the workers. The session does not respond at all.
+
+So the question comes back to whether flask can manage a ""long live context"" to store the object? My work around is to put the db setups in a function decorated by ""before_first_request"". It works pretty well, but I consider as a work around, instead of official solutions.
+
+Regards,
+Chuan 
+",Low,User architectural question regarding persistent database connection pooling.
+448470200,3218,Use @property as a decorator,"A bunch of properties in the codebase are defined using `property` without the decorator syntax, which, while valid, isn't very intuitive anymore.
+
+```python
+def _get_some_value(self):
+    ...
+
+def _set_some_value(self, value):
+    ...
+
+some_value = property(_get_some_value, _set_some_value, doc=""..."")
+del _get_some_value, _set_some_value
+```
+
+```python
+@property
+def some_value(self):
+    """"""...""""""
+    ...
+
+@some_value.setter
+def some_value(self, value):
+    ...
+```",Low,Code cleanup proposal to refactor properties to modern decorator syntax.
+1015374712,4288,2.0.2: test suite is failing,"Looks like pytest is failing in few ubits.
+
+Environment:
+- Python version: 3.8.12
+- Flask version: 2.0.2
+
+I'm trying to package your module as an rpm package. So I'm using the typical build, install and test cycle used on building packages from non-root account.
+- ""setup.py build""
+- ""setup.py install --root </install/prefix>""
+- ""pytest with PYTHONPATH pointing to sitearch and sitelib inside </install/prefix>
+
+Here is the pytest output
+
+<details>
+
+```console
++ PYTHONPATH=/home/tkloczko/rpmbuild/BUILDROOT/python-flask-2.0.2-3.fc35.x86_64/usr/lib64/python3.8/site-packages:/home/tkloczko/rpmbuild/BUILDROOT/python-flask-2.0.2-3.fc35.x86_64/usr/lib/python3.8/site-packages
++ /usr/bin/pytest -ra
+=========================================================================== test session starts ============================================================================
+platform linux -- Python 3.8.12, pytest-6.2.5, py-1.10.0, pluggy-0.13.1
+benchmark: 3.4.1 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)
+Using --randomly-seed=919539527
+rootdir: /home/tkloczko/rpmbuild/BUILD/flask-2.0.2, configfile: setup.cfg, testpaths: tests
+plugins: forked-1.3.0, shutil-1.7.0, virtualenv-1.7.0, expect-1.1.0, flake8-1.0.7, timeout-1.4.2, betamax-0.8.1, freezegun-0.4.2, aspectlib-1.5.2, toolbox-0.5, rerunfailures-9.1.1, requests-mock-1.9.3, cov-2.12.1, flaky-3.7.0, benchmark-3.4.1, xdist-2.3.0, pylama-7.7.1, datadir-1.3.1, regressions-2.2.0, xprocess-0.18.1, black-0.3.12, asyncio-0.15.1, subtests-0.5.0, isort-2.0.0, hypothesis-6.14.6, mock-3.6.1, profiling-1.7.0, randomly-3.8.0, nose2pytest-1.0.8, pyfakefs-4.5.1, tornado-0.8.1, twisted-1.13.3, aiohttp-0.3.0, localserver-0.5.0, anyio-3.3.1, trio-0.7.0, cases-3.6.4, yagot-0.5.0, Faker-8.14.1
+collected 479 items
+
+tests/test_signals.py .......                                                                                                                                        [  1%]
+tests/test_basic.py .........F...........FF.......F......................F................F....................F......F.............F..F..............               [ 28%]
+tests/test_subclassing.py .                                                                                                                                          [ 28%]
+tests/test_templating.py ...F.....F.F...............F...                                                                                                             [ 35%]
+tests/test_session_interface.py .                                                                                                                                    [ 35%]
+tests/test_instance_config.py X...X..X...                                                                                                                            [ 37%]
+tests/test_testing.py ..............FF..F..F....                                                                                                                     [ 43%]
+tests/test_json_tag.py ..............                                                                                                                                [ 46%]
+tests/test_cli.py .......................................................                                                                                            [ 57%]
+tests/test_reqctx.py ..............                                                                                                                                  [ 60%]
+tests/test_regression.py .                                                                                                                                           [ 60%]
+tests/test_user_error_handler.py .........                                                                                                                           [ 62%]
+tests/test_appctx.py ..F...........                                                                                                                                  [ 65%]
+tests/test_converters.py ..                                                                                                                                          [ 65%]
+tests/test_views.py ............                                                                                                                                     [ 68%]
+tests/test_blueprints.py .........................................................                                                                                   [ 80%]
+tests/test_async.py ...s.....                                                                                                                                        [ 82%]
+tests/test_logging.py ......                                                                                                                                         [ 83%]
+tests/test_config.py ................                                                                                                                                [ 86%]
+tests/test_helpers.py .....FFFFFFFF.................                                                                                                                 [ 93%]
+tests/test_json.py ..............F................F.                                                                                                                 [100%]
+
+================================================================================= FAILURES =================================================================================
+___________________________________________________________________________ test_get_method_on_g ___________________________________________________________________________
+
+app_ctx = <flask.ctx.AppContext object at 0x7f182699e7f0>
+
+    def test_get_method_on_g(app_ctx):
+>       assert flask.g.get(""x"") is None
+
+tests/test_basic.py:1826:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/usr/lib/python3.8/site-packages/werkzeug/local.py:422: in __get__
+    obj = instance._get_current_object()
+/usr/lib/python3.8/site-packages/werkzeug/local.py:544: in _get_current_object
+    return self.__local()  # type: ignore
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'g'
+
+    def _lookup_app_object(name):
+        top = _app_ctx_stack.top
+        if top is None:
+>           raise RuntimeError(_app_ctx_err_msg)
+E           RuntimeError: Working outside of application context.
+E
+E           This typically means that you attempted to use functionality that needed
+E           to interface with the current application object in some way. To solve
+E           this, set up an application context with app.app_context().  See the
+E           documentation for more information.
+
+../../BUILDROOT/python-flask-2.0.2-3.fc35.x86_64/usr/lib/python3.8/site-packages/flask/globals.py:40: RuntimeError
+____________________________________________________________________________ test_make_response ____________________________________________________________________________
+
+app = <Flask 'flask_test'>, req_ctx = <RequestContext 'http://localhost/' [GET] of flask_test>
+
+    def test_make_response(app, req_ctx):
+>       rv = flask.make_response()
+
+tests/test_basic.py:1262:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+../../BUILDROOT/python-flask-2.0.2-3.fc35.x86_64/usr/lib/python3.8/site-packages/flask/helpers.py:188: in make_response
+    return current_app.response_class()
+/usr/lib/python3.8/site-packages/werkzeug/local.py:422: in __get__
+    obj = instance._get_current_object()
+/usr/lib/python3.8/site-packages/werkzeug/local.py:544: in _get_current_object
+    return self.__local()  # type: ignore
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def _find_app():
+        top = _app_ctx_stack.top
+        if top is None:
+>           raise RuntimeError(_app_ctx_err_msg)
+E           RuntimeError: Working outside of application context.
+E
+E           This typically means that you attempted to use functionality that needed
+E           to interface with the current application object in some way. To solve
+E           this, set up an application context with app.app_context().  See the
+E           documentation for more information.
+
+../../BUILDROOT/python-flask-2.0.2-3.fc35.x86_64/usr/lib/python3.8/site-packages/flask/globals.py:47: RuntimeError
+___________________________________________________________________________ test_url_generation ____________________________________________________________________________
+
+app = <Flask 'flask_test'>, req_ctx = <RequestContext 'http://localhost/' [GET] of flask_test>
+
+    def test_url_generation(app, req_ctx):
+        @app.route(""/hello/<name>"", methods=[""POST""])
+        def hello():
+            pass
+
+>       assert flask.url_for(""hello"", name=""test x"") == ""/hello/test%20x""
+
+tests/test_basic.py:1347:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+endpoint = 'hello', values = {'name': 'test x'}, appctx = None, reqctx = None
+
+    def url_for(endpoint: str, **values: t.Any) -> str:
+        """"""Generates a URL to the given endpoint with the method provided.
+
+        Variable arguments that are unknown to the target endpoint are appended
+        to the generated URL as query arguments.  If the value of a query argument
+        is ``None``, the whole pair is skipped.  In case blueprints are active
+        you can shortcut references to the same blueprint by prefixing the
+        local endpoint with a dot (``.``).
+
+        This will reference the index function local to the current blueprint::
+
+            url_for('.index')
+
+        See :ref:`url-building`.
+
+        Configuration values ``APPLICATION_ROOT`` and ``SERVER_NAME`` are only used when
+        generating URLs outside of a request context.
+
+        To integrate applications, :class:`Flask` has a hook to intercept URL build
+        errors through :attr:`Flask.url_build_error_handlers`.  The `url_for`
+        function results in a :exc:`~werkzeug.routing.BuildError` when the current
+        app does not have a URL for the given endpoint and values.  When it does, the
+        :data:`~flask.current_app` calls its :attr:`~Flask.url_build_error_handlers` if
+        it is not ``None``, which can return a string to use as the result of
+        `url_for` (instead of `url_for`'s default to raise the
+        :exc:`~werkzeug.routing.BuildError` exception) or re-raise the exception.
+        An example::
+
+            def external_url_handler(error, endpoint, values):
+                ""Looks up an external URL when `url_for` cannot build a URL.""
+                # This is an example of hooking the build_error_handler.
+                # Here, lookup_url is some utility function you've built
+                # which looks up the endpoint in some external URL registry.
+                url = lookup_url(endpoint, **values)
+                if url is None:
+                    # External lookup did not have a URL.
+                    # Re-raise the BuildError, in context of original traceback.
+                    exc_type, exc_value, tb = sys.exc_info()
+                    if exc_value is error:
+                        raise exc_type(exc_value).with_traceback(tb)
+                    else:
+                        raise error
+                # url_for will use this result, instead of raising BuildError.
+                return url
+
+            app.url_build_error_handlers.append(external_url_handler)
+
+        Here, `error` is the instance of :exc:`~werkzeug.routing.BuildError`, and
+        `endpoint` and `values` are the arguments passed into `url_for`.  Note
+        that this is for building URLs outside the current application, and not for
+        handling 404 NotFound errors.
+
+        .. versionadded:: 0.10
+           The `_scheme` parameter was added.
+
+        .. versionadded:: 0.9
+           The `_anchor` and `_method` parameters were added.
+
+        .. versionadded:: 0.9
+           Calls :meth:`Flask.handle_build_error` on
+           :exc:`~werkzeug.routing.BuildError`.
+
+        :param endpoint: the endpoint of the URL (name of the function)
+        :param values: the variable arguments of the URL rule
+        :param _external: if set to ``True``, an absolute URL is generated. Server
+          address can be changed via ``SERVER_NAME`` configuration variable which
+          falls back to the `Host` header, then to the IP and port of the request.
+        :param _scheme: a string specifying the desired URL scheme. The `_external`
+          parameter must be set to ``True`` or a :exc:`ValueError` is raised. The default
+          behavior uses the same scheme as the current request, or
+          :data:`PREFERRED_URL_SCHEME` if no request context is available.
+          This also can be set to an empty string to build protocol-relative
+          URLs.
+        :param _anchor: if provided this is added as anchor to the URL.
+        :param _method: if provided this explicitly specifies an HTTP method.
+        """"""
+        appctx = _app_ctx_stack.top
+        reqctx = _request_ctx_stack.top
+
+        if appctx is None:
+>           raise RuntimeError(
+                ""Attempted to generate a URL without the application context being""
+                "" pushed. This has to be executed when application context is""
+                "" available.""
+            )
+E           RuntimeError: Attempted to generate a URL without the application context being pushed. This has to be executed when application context is available.
+
+../../BUILDROOT/python-flask-2.0.2-3.fc35.x86_64/usr/lib/python3.8/site-packages/flask/helpers.py:274: RuntimeError
+_________________________________________________________________________ test_jsonify_prettyprint _________________________________________________________________________
+
+app = <Flask 'flask_test'>, req_ctx = <RequestContext 'http://localhost/' [GET] of flask_test>
+
+    def test_jsonify_prettyprint(app, req_ctx):
+        app.config.update({""JSONIFY_PRETTYPRINT_REGULAR"": True})
+        compressed_msg = {""msg"": {""submsg"": ""W00t""}, ""msg2"": ""foobar""}
+        pretty_response = (
+            b'{\n  ""msg"": {\n    ""submsg"": ""W00t""\n  }, \n  ""msg2"": ""foobar""\n}\n'
+        )
+
+>       rv = flask.make_response(flask.jsonify(compressed_msg), 200)
+
+tests/test_basic.py:1315:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+../../BUILDROOT/python-flask-2.0.2-3.fc35.x86_64/usr/lib/python3.8/site-packages/flask/json/__init__.py:343: in jsonify
+    if current_app.config[""JSONIFY_PRETTYPRINT_REGULAR""] or current_app.debug:
+/usr/lib/python3.8/site-packages/werkzeug/local.py:422: in __get__
+    obj = instance._get_current_object()
+/usr/lib/python3.8/site-packages/werkzeug/local.py:544: in _get_current_object
+    return self.__local()  # type: ignore
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def _find_app():
+        top = _app_ctx_stack.top
+        if top is None:
+>           raise RuntimeError(_app_ctx_err_msg)
+E           RuntimeError: Working outside of application context.
+E
+E           This typically means that you attempted to use functionality that needed
+E           to interface with the current application object in some way. To solve
+E           this, set up an application context with app.app_context().  See the
+E           documentation for more information.
+
+../../BUILDROOT/python-flask-2.0.2-3.fc35.x86_64/usr/lib/python3.8/site-packages/flask/globals.py:47: RuntimeError
+____________________________________________________________________ test_jsonify_args_and_kwargs_check ____________________________________________________________________
+
+app = <Flask 'flask_test'>, req_ctx = <RequestContext 'http://localhost/' [GET] of flask_test>
+
+    def test_jsonify_args_and_kwargs_check(app, req_ctx):
+        with pytest.raises(TypeError) as e:
+>           flask.jsonify(""fake args"", kwargs=""fake"")
+
+tests/test_basic.py:1338:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+../../BUILDROOT/python-flask-2.0.2-3.fc35.x86_64/usr/lib/python3.8/site-packages/flask/json/__init__.py:343: in jsonify
+    if current_app.config[""JSONIFY_PRETTYPRINT_REGULAR""] or current_app.debug:
+/usr/lib/python3.8/site-packages/werkzeug/local.py:422: in __get__
+    obj = instance._get_current_object()
+/usr/lib/python3.8/site-packages/werkzeug/local.py:544: in _get_current_object
+    return self.__local()  # type: ignore
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def _find_app():
+        top = _app_ctx_stack.top
+        if top is None:
+>           raise RuntimeError(_app_ctx_err_msg)
+E           RuntimeError: Working outside of application context.
+E
+E           This typically means that you attempted to use functionality that needed
+E           to interface with the current application object in some way. To solve
+E           this, set up an application context with app.app_context().  See the
+E           documentation for more information.
+
+../../BUILDROOT/python-flask-2.0.2-3.fc35.x86_64/usr/lib/python3.8/site-packages/flask/globals.py:47: RuntimeError
+________________________________________________________________ test_make_response_with_response_instance _________________________________________________________________
+
+app = <Flask 'flask_test'>, req_ctx = <RequestContext 'http://localhost/' [GET] of flask_test>
+
+    def test_make_response_with_response_instance(app, req_ctx):
+>       rv = flask.make_response(flask.jsonify({""msg"": ""W00t""}), 400)
+
+tests/test_basic.py:1279:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+../../BUILDROOT/python-flask-2.0.2-3.fc35.x86_64/usr/lib/python3.8/site-packages/flask/json/__init__.py:343: in jsonify
+    if current_app.config[""JSONIFY_PRETTYPRINT_REGULAR""] or current_app.debug:
+/usr/lib/python3.8/site-packages/werkzeug/local.py:422: in __get__
+    obj = instance._get_current_object()
+/usr/lib/python3.8/site-packages/werkzeug/local.py:544: in _get_current_object
+    return self.__local()  # type: ignore
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def _find_app():
+        top = _app_ctx_stack.top
+        if top is None:
+>           raise RuntimeError(_app_ctx_err_msg)
+E           RuntimeError: Working outside of application context.
+E
+E           This typically means that you attempted to use functionality that needed
+E           to interface with the current application object in some way. To solve
+E           this, set up an application context with app.app_context().  See the
+E           documentation for more information.
+
+../../BUILDROOT/python-flask-2.0.2-3.fc35.x86_64/usr/lib/python3.8/site-packages/flask/globals.py:47: RuntimeError
+_______________________________________________________________________________ test_flashes _______________________________________________________________________________
+
+app = <Flask 'flask_test'>, req_ctx = <RequestContext 'http://localhost/' [GET] of flask_test>
+
+    def test_flashes(app, req_ctx):
+>       assert not flask.session.modified
+
+tests/test_basic.py:598:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/usr/lib/python3.8/site-packages/werkzeug/local.py:422: in __get__
+    obj = instance._get_current_object()
+/usr/lib/python3.8/site-packages/werkzeug/local.py:544: in _get_current_object
+    return self.__local()  # type: ignore
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'session'
+
+    def _lookup_req_object(name):
+        top = _request_ctx_stack.top
+        if top is None:
+>           raise RuntimeError(_request_ctx_err_msg)
+E           RuntimeError: Working outside of request context.
+E
+E           This typically means that you attempted to use functionality that needed
+E           an active HTTP request.  Consult the documentation on testing for
+E           information about how to avoid this problem.
+
+../../BUILDROOT/python-flask-2.0.2-3.fc35.x86_64/usr/lib/python3.8/site-packages/flask/globals.py:33: RuntimeError
+__________________________________________________________________________ test_jsonify_mimetype ___________________________________________________________________________
+
+app = <Flask 'flask_test'>, req_ctx = <RequestContext 'http://localhost/' [GET] of flask_test>
+
+    def test_jsonify_mimetype(app, req_ctx):
+        app.config.update({""JSONIFY_MIMETYPE"": ""application/vnd.api+json""})
+        msg = {""msg"": {""submsg"": ""W00t""}}
+>       rv = flask.make_response(flask.jsonify(msg), 200)
+
+tests/test_basic.py:1322:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+../../BUILDROOT/python-flask-2.0.2-3.fc35.x86_64/usr/lib/python3.8/site-packages/flask/json/__init__.py:343: in jsonify
+    if current_app.config[""JSONIFY_PRETTYPRINT_REGULAR""] or current_app.debug:
+/usr/lib/python3.8/site-packages/werkzeug/local.py:422: in __get__
+    obj = instance._get_current_object()
+/usr/lib/python3.8/site-packages/werkzeug/local.py:544: in _get_current_object
+    return self.__local()  # type: ignore
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def _find_app():
+        top = _app_ctx_stack.top
+        if top is None:
+>           raise RuntimeError(_app_ctx_err_msg)
+E           RuntimeError: Working outside of application context.
+E
+E           This typically means that you attempted to use functionality that needed
+E           to interface with the current application object in some way. To solve
+E           this, set up an application context with app.app_context().  See the
+E           documentation for more information.
+
+../../BUILDROOT/python-flask-2.0.2-3.fc35.x86_64/usr/lib/python3.8/site-packages/flask/globals.py:47: RuntimeError
+________________________________________________________________________ test_g_iteration_protocol _________________________________________________________________________
+
+app_ctx = <flask.ctx.AppContext object at 0x7f1826968b80>
+
+    def test_g_iteration_protocol(app_ctx):
+>       flask.g.foo = 23
+
+tests/test_basic.py:1834:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/usr/lib/python3.8/site-packages/werkzeug/local.py:422: in __get__
+    obj = instance._get_current_object()
+/usr/lib/python3.8/site-packages/werkzeug/local.py:544: in _get_current_object
+    return self.__local()  # type: ignore
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'g'
+
+    def _lookup_app_object(name):
+        top = _app_ctx_stack.top
+        if top is None:
+>           raise RuntimeError(_app_ctx_err_msg)
+E           RuntimeError: Working outside of application context.
+E
+E           This typically means that you attempted to use functionality that needed
+E           to interface with the current application object in some way. To solve
+E           this, set up an application context with app.app_context().  See the
+E           documentation for more information.
+
+../../BUILDROOT/python-flask-2.0.2-3.fc35.x86_64/usr/lib/python3.8/site-packages/flask/globals.py:40: RuntimeError
+_______________________________________________________________________ test_jsonify_no_prettyprint ________________________________________________________________________
+
+app = <Flask 'flask_test'>, req_ctx = <RequestContext 'http://localhost/' [GET] of flask_test>
+
+    def test_jsonify_no_prettyprint(app, req_ctx):
+        app.config.update({""JSONIFY_PRETTYPRINT_REGULAR"": False})
+        compressed_msg = b'{""msg"":{""submsg"":""W00t""},""msg2"":""foobar""}\n'
+        uncompressed_msg = {""msg"": {""submsg"": ""W00t""}, ""msg2"": ""foobar""}
+
+>       rv = flask.make_response(flask.jsonify(uncompressed_msg), 200)
+
+tests/test_basic.py:1304:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+../../BUILDROOT/python-flask-2.0.2-3.fc35.x86_64/usr/lib/python3.8/site-packages/flask/json/__init__.py:343: in jsonify
+    if current_app.config[""JSONIFY_PRETTYPRINT_REGULAR""] or current_app.debug:
+/usr/lib/python3.8/site-packages/werkzeug/local.py:422: in __get__
+    obj = instance._get_current_object()
+/usr/lib/python3.8/site-packages/werkzeug/local.py:544: in _get_current_object
+    return self.__local()  # type: ignore
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def _find_app():
+        top = _app_ctx_stack.top
+        if top is None:
+>           raise RuntimeError(_app_ctx_err_msg)
+E           RuntimeError: Working outside of application context.
+E
+E           This typically means that you attempted to use functionality that needed
+E           to interface with the current application object in some way. To solve
+E           this, set up an application context with app.app_context().  See the
+E           documentation for more information.
+
+../../BUILDROOT/python-flask-2.0.2-3.fc35.x86_64/usr/lib/python3.8/site-packages/flask/globals.py:47: RuntimeError
+_______________________________________________________________________ test_request_less_rendering ________________________________________________________________________
+
+app = <Flask 'flask_test'>, app_ctx = <flask.ctx.AppContext object at 0x7f18269792b0>
+
+    def test_request_less_rendering(app, app_ctx):
+        app.config[""WORLD_NAME""] = ""Special World""
+
+        @app.context_processor
+        def context_processor():
+            return dict(foo=42)
+
+>       rv = flask.render_template_string(""Hello {{ config.WORLD_NAME }} {{ foo }}"")
+
+tests/test_templating.py:39:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+source = 'Hello {{ config.WORLD_NAME }} {{ foo }}', context = {}, ctx = None
+
+    def render_template_string(source: str, **context: t.Any) -> str:
+        """"""Renders a template from the given template source string
+        with the given context. Template variables will be autoescaped.
+
+        :param source: the source code of the template to be
+                       rendered
+        :param context: the variables that should be available in the
+                        context of the template.
+        """"""
+        ctx = _app_ctx_stack.top
+>       ctx.app.update_template_context(context)
+E       AttributeError: 'NoneType' object has no attribute 'app'
+
+../../BUILDROOT/python-flask-2.0.2-3.fc35.x86_64/usr/lib/python3.8/site-packages/flask/templating.py:164: AttributeError
+_______________________________________________________________________________ test_macros ________________________________________________________________________________
+
+app = <Flask 'flask_test'>, req_ctx = <RequestContext 'http://localhost/' [GET] of flask_test>
+
+    def test_macros(app, req_ctx):
+>       macro = flask.get_template_attribute(""_macro.html"", ""hello"")
+
+tests/test_templating.py:109:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+../../BUILDROOT/python-flask-2.0.2-3.fc35.x86_64/usr/lib/python3.8/site-packages/flask/helpers.py:364: in get_template_attribute
+    return getattr(current_app.jinja_env.get_template(template_name).module, attribute)
+/usr/lib/python3.8/site-packages/werkzeug/local.py:422: in __get__
+    obj = instance._get_current_object()
+/usr/lib/python3.8/site-packages/werkzeug/local.py:544: in _get_current_object
+    return self.__local()  # type: ignore
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def _find_app():
+        top = _app_ctx_stack.top
+        if top is None:
+>           raise RuntimeError(_app_ctx_err_msg)
+E           RuntimeError: Working outside of application context.
+E
+E           This typically means that you attempted to use functionality that needed
+E           to interface with the current application object in some way. To solve
+E           this, set up an application context with app.app_context().  See the
+E           documentation for more information.
+
+../../BUILDROOT/python-flask-2.0.2-3.fc35.x86_64/usr/lib/python3.8/site-packages/flask/globals.py:47: RuntimeError
+_________________________________________________________________________ test_add_template_global _________________________________________________________________________
+
+app = <Flask 'flask_test'>, app_ctx = <flask.ctx.AppContext object at 0x7f1826f8ce20>
+
+    def test_add_template_global(app, app_ctx):
+        @app.template_global()
+        def get_stuff():
+            return 42
+
+        assert ""get_stuff"" in app.jinja_env.globals.keys()
+        assert app.jinja_env.globals[""get_stuff""] == get_stuff
+        assert app.jinja_env.globals[""get_stuff""](), 42
+
+>       rv = flask.render_template_string(""{{ get_stuff() }}"")
+
+tests/test_templating.py:310:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+source = '{{ get_stuff() }}', context = {}, ctx = None
+
+    def render_template_string(source: str, **context: t.Any) -> str:
+        """"""Renders a template from the given template source string
+        with the given context. Template variables will be autoescaped.
+
+        :param source: the source code of the template to be
+                       rendered
+        :param context: the variables that should be available in the
+                        context of the template.
+        """"""
+        ctx = _app_ctx_stack.top
+>       ctx.app.update_template_context(context)
+E       AttributeError: 'NoneType' object has no attribute 'app'
+
+../../BUILDROOT/python-flask-2.0.2-3.fc35.x86_64/usr/lib/python3.8/site-packages/flask/templating.py:164: AttributeError
+_________________________________________________________________ test_escaping_without_template_filename __________________________________________________________________
+
+app = <Flask 'flask_test'>, client = <FlaskClient <Flask 'flask_test'>>, req_ctx = <RequestContext 'http://localhost/' [GET] of flask_test>
+
+    def test_escaping_without_template_filename(app, client, req_ctx):
+>       assert flask.render_template_string(""{{ foo }}"", foo=""<test>"") == ""&lt;test&gt;""
+
+tests/test_templating.py:104:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+source = '{{ foo }}', context = {'foo': '<test>'}, ctx = None
+
+    def render_template_string(source: str, **context: t.Any) -> str:
+        """"""Renders a template from the given template source string
+        with the given context. Template variables will be autoescaped.
+
+        :param source: the source code of the template to be
+                       rendered
+        :param context: the variables that should be available in the
+                        context of the template.
+        """"""
+        ctx = _app_ctx_stack.top
+>       ctx.app.update_template_context(context)
+E       AttributeError: 'NoneType' object has no attribute 'app'
+
+../../BUILDROOT/python-flask-2.0.2-3.fc35.x86_64/usr/lib/python3.8/site-packages/flask/templating.py:164: AttributeError
+________________________________________________________________________ test_environ_base_default _________________________________________________________________________
+
+app = <Flask 'flask_test'>, client = <FlaskClient <Flask 'flask_test'>>, app_ctx = <flask.ctx.AppContext object at 0x7f1826f324f0>
+
+    def test_environ_base_default(app, client, app_ctx):
+        @app.route(""/"")
+        def index():
+            flask.g.user_agent = flask.request.headers[""User-Agent""]
+            return flask.request.remote_addr
+
+        rv = client.get(""/"")
+        assert rv.data == b""127.0.0.1""
+>       assert flask.g.user_agent == f""werkzeug/{werkzeug.__version__}""
+
+tests/test_testing.py:53:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/usr/lib/python3.8/site-packages/werkzeug/local.py:422: in __get__
+    obj = instance._get_current_object()
+/usr/lib/python3.8/site-packages/werkzeug/local.py:544: in _get_current_object
+    return self.__local()  # type: ignore
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'g'
+
+    def _lookup_app_object(name):
+        top = _app_ctx_stack.top
+        if top is None:
+>           raise RuntimeError(_app_ctx_err_msg)
+E           RuntimeError: Working outside of application context.
+E
+E           This typically means that you attempted to use functionality that needed
+E           to interface with the current application object in some way. To solve
+E           this, set up an application context with app.app_context().  See the
+E           documentation for more information.
+
+../../BUILDROOT/python-flask-2.0.2-3.fc35.x86_64/usr/lib/python3.8/site-packages/flask/globals.py:40: RuntimeError
+__________________________________________________________________ test_session_transactions_keep_context __________________________________________________________________
+
+app = <Flask 'flask_test'>, client = <FlaskClient <Flask 'flask_test'>>, req_ctx = <RequestContext 'http://localhost/' [GET] of flask_test>
+
+    def test_session_transactions_keep_context(app, client, req_ctx):
+        client.get(""/"")
+>       req = flask.request._get_current_object()
+
+tests/test_testing.py:201:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/usr/lib/python3.8/site-packages/werkzeug/local.py:544: in _get_current_object
+    return self.__local()  # type: ignore
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'request'
+
+    def _lookup_req_object(name):
+        top = _request_ctx_stack.top
+        if top is None:
+>           raise RuntimeError(_request_ctx_err_msg)
+E           RuntimeError: Working outside of request context.
+E
+E           This typically means that you attempted to use functionality that needed
+E           an active HTTP request.  Consult the documentation on testing for
+E           information about how to avoid this problem.
+
+../../BUILDROOT/python-flask-2.0.2-3.fc35.x86_64/usr/lib/python3.8/site-packages/flask/globals.py:33: RuntimeError
+________________________________________________________________________ test_environ_base_modified ________________________________________________________________________
+
+app = <Flask 'flask_test'>, client = <FlaskClient <Flask 'flask_test'>>, app_ctx = <flask.ctx.AppContext object at 0x7f1826e4aa90>
+
+    def test_environ_base_modified(app, client, app_ctx):
+        @app.route(""/"")
+        def index():
+            flask.g.user_agent = flask.request.headers[""User-Agent""]
+            return flask.request.remote_addr
+
+        client.environ_base[""REMOTE_ADDR""] = ""0.0.0.0""
+        client.environ_base[""HTTP_USER_AGENT""] = ""Foo""
+        rv = client.get(""/"")
+        assert rv.data == b""0.0.0.0""
+>       assert flask.g.user_agent == ""Foo""
+
+tests/test_testing.py:66:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/usr/lib/python3.8/site-packages/werkzeug/local.py:422: in __get__
+    obj = instance._get_current_object()
+/usr/lib/python3.8/site-packages/werkzeug/local.py:544: in _get_current_object
+    return self.__local()  # type: ignore
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'g'
+
+    def _lookup_app_object(name):
+        top = _app_ctx_stack.top
+        if top is None:
+>           raise RuntimeError(_app_ctx_err_msg)
+E           RuntimeError: Working outside of application context.
+E
+E           This typically means that you attempted to use functionality that needed
+E           to interface with the current application object in some way. To solve
+E           this, set up an application context with app.app_context().  See the
+E           documentation for more information.
+
+../../BUILDROOT/python-flask-2.0.2-3.fc35.x86_64/usr/lib/python3.8/site-packages/flask/globals.py:40: RuntimeError
+______________________________________________________________________ test_client_pop_all_preserved _______________________________________________________________________
+
+app = <Flask 'flask_test'>, req_ctx = <RequestContext 'http://localhost/' [GET] of flask_test>, client = <FlaskClient <Flask 'flask_test'>>
+
+    def test_client_pop_all_preserved(app, req_ctx, client):
+        @app.route(""/"")
+        def index():
+            # stream_with_context pushes a third context, preserved by client
+            return flask.Response(flask.stream_with_context(""hello""))
+
+        # req_ctx fixture pushed an initial context, not marked preserved
+        with client:
+            # request pushes a second request context, preserved by client
+            client.get(""/"")
+
+        # only req_ctx fixture should still be pushed
+>       assert flask._request_ctx_stack.top is req_ctx
+E       AssertionError: assert None is <RequestContext 'http://localhost/' [GET] of flask_test>
+E        +  where None = <werkzeug.local.LocalStack object at 0x7f16952bd9a0>.top
+E        +    where <werkzeug.local.LocalStack object at 0x7f16952bd9a0> = flask._request_ctx_stack
+
+tests/test_testing.py:424: AssertionError
+_______________________________________________________________________ test_app_ctx_globals_methods _______________________________________________________________________
+
+app = <Flask 'flask_test'>, app_ctx = <flask.ctx.AppContext object at 0x7f1826830dc0>
+
+    def test_app_ctx_globals_methods(app, app_ctx):
+        # get
+>       assert flask.g.get(""foo"") is None
+
+tests/test_appctx.py:134:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/usr/lib/python3.8/site-packages/werkzeug/local.py:422: in __get__
+    obj = instance._get_current_object()
+/usr/lib/python3.8/site-packages/werkzeug/local.py:544: in _get_current_object
+    return self.__local()  # type: ignore
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'g'
+
+    def _lookup_app_object(name):
+        top = _app_ctx_stack.top
+        if top is None:
+>           raise RuntimeError(_app_ctx_err_msg)
+E           RuntimeError: Working outside of application context.
+E
+E           This typically means that you attempted to use functionality that needed
+E           to interface with the current application object in some way. To solve
+E           this, set up an application context with app.app_context().  See the
+E           documentation for more information.
+
+../../BUILDROOT/python-flask-2.0.2-3.fc35.x86_64/usr/lib/python3.8/site-packages/flask/globals.py:40: RuntimeError
+__________________________________________________________________ TestSendfile.test_send_from_directory ___________________________________________________________________
+
+self = <test_helpers.TestSendfile object at 0x7f1826a96c40>, app = <Flask 'flask_test'>, req_ctx = <RequestContext 'http://localhost/' [GET] of flask_test>
+
+    def test_send_from_directory(self, app, req_ctx):
+        app.root_path = os.path.join(
+            os.path.dirname(__file__), ""test_apps"", ""subdomaintestmodule""
+        )
+>       rv = flask.send_from_directory(""static"", ""hello.txt"")
+
+tests/test_helpers.py:96:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+../../BUILDROOT/python-flask-2.0.2-3.fc35.x86_64/usr/lib/python3.8/site-packages/flask/helpers.py:701: in send_from_directory
+    directory, path, **_prepare_send_file_kwargs(**kwargs)
+../../BUILDROOT/python-flask-2.0.2-3.fc35.x86_64/usr/lib/python3.8/site-packages/flask/helpers.py:482: in _prepare_send_file_kwargs
+    max_age = current_app.get_send_file_max_age
+/usr/lib/python3.8/site-packages/werkzeug/local.py:422: in __get__
+    obj = instance._get_current_object()
+/usr/lib/python3.8/site-packages/werkzeug/local.py:544: in _get_current_object
+    return self.__local()  # type: ignore
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def _find_app():
+        top = _app_ctx_stack.top
+        if top is None:
+>           raise RuntimeError(_app_ctx_err_msg)
+E           RuntimeError: Working outside of application context.
+E
+E           This typically means that you attempted to use functionality that needed
+E           to interface with the current application object in some way. To solve
+E           this, set up an application context with app.app_context().  See the
+E           documentation for more information.
+
+../../BUILDROOT/python-flask-2.0.2-3.fc35.x86_64/usr/lib/python3.8/site-packages/flask/globals.py:47: RuntimeError
+______________________________________________________________________ TestSendfile.test_static_file _______________________________________________________________________
+
+self = <test_helpers.TestSendfile object at 0x7f18266e22e0>, app = <Flask 'flask_test'>, req_ctx = <RequestContext 'http://localhost/' [GET] of flask_test>
+
+    def test_static_file(self, app, req_ctx):
+        # Default max_age is None.
+
+        # Test with static file handler.
+>       rv = app.send_static_file(""index.html"")
+
+tests/test_helpers.py:49:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+../../BUILDROOT/python-flask-2.0.2-3.fc35.x86_64/usr/lib/python3.8/site-packages/flask/scaffold.py:331: in send_static_file
+    max_age = self.get_send_file_max_age(filename)
+../../BUILDROOT/python-flask-2.0.2-3.fc35.x86_64/usr/lib/python3.8/site-packages/flask/scaffold.py:311: in get_send_file_max_age
+    value = current_app.send_file_max_age_default
+/usr/lib/python3.8/site-packages/werkzeug/local.py:422: in __get__
+    obj = instance._get_current_object()
+/usr/lib/python3.8/site-packages/werkzeug/local.py:544: in _get_current_object
+    return self.__local()  # type: ignore
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def _find_app():
+        top = _app_ctx_stack.top
+        if top is None:
+>           raise RuntimeError(_app_ctx_err_msg)
+E           RuntimeError: Working outside of application context.
+E
+E           This typically means that you attempted to use functionality that needed
+E           to interface with the current application object in some way. To solve
+E           this, set up an application context with app.app_context().  See the
+E           documentation for more information.
+
+../../BUILDROOT/python-flask-2.0.2-3.fc35.x86_64/usr/lib/python3.8/site-packages/flask/globals.py:47: RuntimeError
+_______________________________________________________________________ TestSendfile.test_send_file ________________________________________________________________________
+
+self = <test_helpers.TestSendfile object at 0x7f18266ba400>, app = <Flask 'flask_test'>, req_ctx = <RequestContext 'http://localhost/' [GET] of flask_test>
+
+    def test_send_file(self, app, req_ctx):
+>       rv = flask.send_file(""static/index.html"")
+
+tests/test_helpers.py:35:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+../../BUILDROOT/python-flask-2.0.2-3.fc35.x86_64/usr/lib/python3.8/site-packages/flask/helpers.py:615: in send_file
+    environ=request.environ,
+/usr/lib/python3.8/site-packages/werkzeug/local.py:422: in __get__
+    obj = instance._get_current_object()
+/usr/lib/python3.8/site-packages/werkzeug/local.py:544: in _get_current_object
+    return self.__local()  # type: ignore
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'request'
+
+    def _lookup_req_object(name):
+        top = _request_ctx_stack.top
+        if top is None:
+>           raise RuntimeError(_request_ctx_err_msg)
+E           RuntimeError: Working outside of request context.
+E
+E           This typically means that you attempted to use functionality that needed
+E           an active HTTP request.  Consult the documentation on testing for
+E           information about how to avoid this problem.
+
+../../BUILDROOT/python-flask-2.0.2-3.fc35.x86_64/usr/lib/python3.8/site-packages/flask/globals.py:33: RuntimeError
+_____________________________________________________________________ TestUrlFor.test_url_with_method ______________________________________________________________________
+
+self = <test_helpers.TestUrlFor object at 0x7f182659f9d0>, app = <Flask 'flask_test'>, req_ctx = <RequestContext 'http://localhost/' [GET] of flask_test>
+
+    def test_url_with_method(self, app, req_ctx):
+        from flask.views import MethodView
+
+        class MyView(MethodView):
+            def get(self, id=None):
+                if id is None:
+                    return ""List""
+                return f""Get {id:d}""
+
+            def post(self):
+                return ""Create""
+
+        myview = MyView.as_view(""myview"")
+        app.add_url_rule(""/myview/"", methods=[""GET""], view_func=myview)
+        app.add_url_rule(""/myview/<int:id>"", methods=[""GET""], view_func=myview)
+        app.add_url_rule(""/myview/create"", methods=[""POST""], view_func=myview)
+
+>       assert flask.url_for(""myview"", _method=""GET"") == ""/myview/""
+
+tests/test_helpers.py:156:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+endpoint = 'myview', values = {'_method': 'GET'}, appctx = None, reqctx = None
+
+    def url_for(endpoint: str, **values: t.Any) -> str:
+        """"""Generates a URL to the given endpoint with the method provided.
+
+        Variable arguments that are unknown to the target endpoint are appended
+        to the generated URL as query arguments.  If the value of a query argument
+        is ``None``, the whole pair is skipped.  In case blueprints are active
+        you can shortcut references to the same blueprint by prefixing the
+        local endpoint with a dot (``.``).
+
+        This will reference the index function local to the current blueprint::
+
+            url_for('.index')
+
+        See :ref:`url-building`.
+
+        Configuration values ``APPLICATION_ROOT`` and ``SERVER_NAME`` are only used when
+        generating URLs outside of a request context.
+
+        To integrate applications, :class:`Flask` has a hook to intercept URL build
+        errors through :attr:`Flask.url_build_error_handlers`.  The `url_for`
+        function results in a :exc:`~werkzeug.routing.BuildError` when the current
+        app does not have a URL for the given endpoint and values.  When it does, the
+        :data:`~flask.current_app` calls its :attr:`~Flask.url_build_error_handlers` if
+        it is not ``None``, which can return a string to use as the result of
+        `url_for` (instead of `url_for`'s default to raise the
+        :exc:`~werkzeug.routing.BuildError` exception) or re-raise the exception.
+        An example::
+
+            def external_url_handler(error, endpoint, values):
+                ""Looks up an external URL when `url_for` cannot build a URL.""
+                # This is an example of hooking the build_error_handler.
+                # Here, lookup_url is some utility function you've built
+                # which looks up the endpoint in some external URL registry.
+                url = lookup_url(endpoint, **values)
+                if url is None:
+                    # External lookup did not have a URL.
+                    # Re-raise the BuildError, in context of original traceback.
+                    exc_type, exc_value, tb = sys.exc_info()
+                    if exc_value is error:
+                        raise exc_type(exc_value).with_traceback(tb)
+                    else:
+                        raise error
+                # url_for will use this result, instead of raising BuildError.
+                return url
+
+            app.url_build_error_handlers.append(external_url_handler)
+
+        Here, `error` is the instance of :exc:`~werkzeug.routing.BuildError`, and
+        `endpoint` and `values` are the arguments passed into `url_for`.  Note
+        that this is for building URLs outside the current application, and not for
+        handling 404 NotFound errors.
+
+        .. versionadded:: 0.10
+           The `_scheme` parameter was added.
+
+        .. versionadded:: 0.9
+           The `_anchor` and `_method` parameters were added.
+
+        .. versionadded:: 0.9
+           Calls :meth:`Flask.handle_build_error` on
+           :exc:`~werkzeug.routing.BuildError`.
+
+        :param endpoint: the endpoint of the URL (name of the function)
+        :param values: the variable arguments of the URL rule
+        :param _external: if set to ``True``, an absolute URL is generated. Server
+          address can be changed via ``SERVER_NAME`` configuration variable which
+          falls back to the `Host` header, then to the IP and port of the request.
+        :param _scheme: a string specifying the desired URL scheme. The `_external`
+          parameter must be set to ``True`` or a :exc:`ValueError` is raised. The default
+          behavior uses the same scheme as the current request, or
+          :data:`PREFERRED_URL_SCHEME` if no request context is available.
+          This also can be set to an empty string to build protocol-relative
+          URLs.
+        :param _anchor: if provided this is added as anchor to the URL.
+        :param _method: if provided this explicitly specifies an HTTP method.
+        """"""
+        appctx = _app_ctx_stack.top
+        reqctx = _request_ctx_stack.top
+
+        if appctx is None:
+>           raise RuntimeError(
+                ""Attempted to generate a URL without the application context being""
+                "" pushed. This has to be executed when application context is""
+                "" available.""
+            )
+E           RuntimeError: Attempted to generate a URL without the application context being pushed. This has to be executed when application context is available.
+
+../../BUILDROOT/python-flask-2.0.2-3.fc35.x86_64/usr/lib/python3.8/site-packages/flask/helpers.py:274: RuntimeError
+_____________________________________________________________ TestUrlFor.test_url_for_with_alternating_schemes _____________________________________________________________
+
+self = <test_helpers.TestUrlFor object at 0x7f182665e8e0>, app = <Flask 'flask_test'>, req_ctx = <RequestContext 'http://localhost/' [GET] of flask_test>
+
+    def test_url_for_with_alternating_schemes(self, app, req_ctx):
+        @app.route(""/"")
+        def index():
+            return ""42""
+
+>       assert flask.url_for(""index"", _external=True) == ""http://localhost/""
+
+tests/test_helpers.py:132:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+endpoint = 'index', values = {'_external': True}, appctx = None, reqctx = None
+
+    def url_for(endpoint: str, **values: t.Any) -> str:
+        """"""Generates a URL to the given endpoint with the method provided.
+
+        Variable arguments that are unknown to the target endpoint are appended
+        to the generated URL as query arguments.  If the value of a query argument
+        is ``None``, the whole pair is skipped.  In case blueprints are active
+        you can shortcut references to the same blueprint by prefixing the
+        local endpoint with a dot (``.``).
+
+        This will reference the index function local to the current blueprint::
+
+            url_for('.index')
+
+        See :ref:`url-building`.
+
+        Configuration values ``APPLICATION_ROOT`` and ``SERVER_NAME`` are only used when
+        generating URLs outside of a request context.
+
+        To integrate applications, :class:`Flask` has a hook to intercept URL build
+        errors through :attr:`Flask.url_build_error_handlers`.  The `url_for`
+        function results in a :exc:`~werkzeug.routing.BuildError` when the current
+        app does not have a URL for the given endpoint and values.  When it does, the
+        :data:`~flask.current_app` calls its :attr:`~Flask.url_build_error_handlers` if
+        it is not ``None``, which can return a string to use as the result of
+        `url_for` (instead of `url_for`'s default to raise the
+        :exc:`~werkzeug.routing.BuildError` exception) or re-raise the exception.
+        An example::
+
+            def external_url_handler(error, endpoint, values):
+                ""Looks up an external URL when `url_for` cannot build a URL.""
+                # This is an example of hooking the build_error_handler.
+                # Here, lookup_url is some utility function you've built
+                # which looks up the endpoint in some external URL registry.
+                url = lookup_url(endpoint, **values)
+                if url is None:
+                    # External lookup did not have a URL.
+                    # Re-raise the BuildError, in context of original traceback.
+                    exc_type, exc_value, tb = sys.exc_info()
+                    if exc_value is error:
+                        raise exc_type(exc_value).with_traceback(tb)
+                    else:
+                        raise error
+                # url_for will use this result, instead of raising BuildError.
+                return url
+
+            app.url_build_error_handlers.append(external_url_handler)
+
+        Here, `error` is the instance of :exc:`~werkzeug.routing.BuildError`, and
+        `endpoint` and `values` are the arguments passed into `url_for`.  Note
+        that this is for building URLs outside the current application, and not for
+        handling 404 NotFound errors.
+
+        .. versionadded:: 0.10
+           The `_scheme` parameter was added.
+
+        .. versionadded:: 0.9
+           The `_anchor` and `_method` parameters were added.
+
+        .. versionadded:: 0.9
+           Calls :meth:`Flask.handle_build_error` on
+           :exc:`~werkzeug.routing.BuildError`.
+
+        :param endpoint: the endpoint of the URL (name of the function)
+        :param values: the variable arguments of the URL rule
+        :param _external: if set to ``True``, an absolute URL is generated. Server
+          address can be changed via ``SERVER_NAME`` configuration variable which
+          falls back to the `Host` header, then to the IP and port of the request.
+        :param _scheme: a string specifying the desired URL scheme. The `_external`
+          parameter must be set to ``True`` or a :exc:`ValueError` is raised. The default
+          behavior uses the same scheme as the current request, or
+          :data:`PREFERRED_URL_SCHEME` if no request context is available.
+          This also can be set to an empty string to build protocol-relative
+          URLs.
+        :param _anchor: if provided this is added as anchor to the URL.
+        :param _method: if provided this explicitly specifies an HTTP method.
+        """"""
+        appctx = _app_ctx_stack.top
+        reqctx = _request_ctx_stack.top
+
+        if appctx is None:
+>           raise RuntimeError(
+                ""Attempted to generate a URL without the application context being""
+                "" pushed. This has to be executed when application context is""
+                "" available.""
+            )
+E           RuntimeError: Attempted to generate a URL without the application context being pushed. This has to be executed when application context is available.
+
+../../BUILDROOT/python-flask-2.0.2-3.fc35.x86_64/usr/lib/python3.8/site-packages/flask/helpers.py:274: RuntimeError
+___________________________________________________________________ TestUrlFor.test_url_for_with_anchor ____________________________________________________________________
+
+self = <test_helpers.TestUrlFor object at 0x7f182663d9d0>, app = <Flask 'flask_test'>, req_ctx = <RequestContext 'http://localhost/' [GET] of flask_test>
+
+    def test_url_for_with_anchor(self, app, req_ctx):
+        @app.route(""/"")
+        def index():
+            return ""42""
+
+>       assert flask.url_for(""index"", _anchor=""x y"") == ""/#x%20y""
+
+tests/test_helpers.py:108:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+endpoint = 'index', values = {'_anchor': 'x y'}, appctx = None, reqctx = None
+
+    def url_for(endpoint: str, **values: t.Any) -> str:
+        """"""Generates a URL to the given endpoint with the method provided.
+
+        Variable arguments that are unknown to the target endpoint are appended
+        to the generated URL as query arguments.  If the value of a query argument
+        is ``None``, the whole pair is skipped.  In case blueprints are active
+        you can shortcut references to the same blueprint by prefixing the
+        local endpoint with a dot (``.``).
+
+        This will reference the index function local to the current blueprint::
+
+            url_for('.index')
+
+        See :ref:`url-building`.
+
+        Configuration values ``APPLICATION_ROOT`` and ``SERVER_NAME`` are only used when
+        generating URLs outside of a request context.
+
+        To integrate applications, :class:`Flask` has a hook to intercept URL build
+        errors through :attr:`Flask.url_build_error_handlers`.  The `url_for`
+        function results in a :exc:`~werkzeug.routing.BuildError` when the current
+        app does not have a URL for the given endpoint and values.  When it does, the
+        :data:`~flask.current_app` calls its :attr:`~Flask.url_build_error_handlers` if
+        it is not ``None``, which can return a string to use as the result of
+        `url_for` (instead of `url_for`'s default to raise the
+        :exc:`~werkzeug.routing.BuildError` exception) or re-raise the exception.
+        An example::
+
+            def external_url_handler(error, endpoint, values):
+                ""Looks up an external URL when `url_for` cannot build a URL.""
+                # This is an example of hooking the build_error_handler.
+                # Here, lookup_url is some utility function you've built
+                # which looks up the endpoint in some external URL registry.
+                url = lookup_url(endpoint, **values)
+                if url is None:
+                    # External lookup did not have a URL.
+                    # Re-raise the BuildError, in context of original traceback.
+                    exc_type, exc_value, tb = sys.exc_info()
+                    if exc_value is error:
+                        raise exc_type(exc_value).with_traceback(tb)
+                    else:
+                        raise error
+                # url_for will use this result, instead of raising BuildError.
+                return url
+
+            app.url_build_error_handlers.append(external_url_handler)
+
+        Here, `error` is the instance of :exc:`~werkzeug.routing.BuildError`, and
+        `endpoint` and `values` are the arguments passed into `url_for`.  Note
+        that this is for building URLs outside the current application, and not for
+        handling 404 NotFound errors.
+
+        .. versionadded:: 0.10
+           The `_scheme` parameter was added.
+
+        .. versionadded:: 0.9
+           The `_anchor` and `_method` parameters were added.
+
+        .. versionadded:: 0.9
+           Calls :meth:`Flask.handle_build_error` on
+           :exc:`~werkzeug.routing.BuildError`.
+
+        :param endpoint: the endpoint of the URL (name of the function)
+        :param values: the variable arguments of the URL rule
+        :param _external: if set to ``True``, an absolute URL is generated. Server
+          address can be changed via ``SERVER_NAME`` configuration variable which
+          falls back to the `Host` header, then to the IP and port of the request.
+        :param _scheme: a string specifying the desired URL scheme. The `_external`
+          parameter must be set to ``True`` or a :exc:`ValueError` is raised. The default
+          behavior uses the same scheme as the current request, or
+          :data:`PREFERRED_URL_SCHEME` if no request context is available.
+          This also can be set to an empty string to build protocol-relative
+          URLs.
+        :param _anchor: if provided this is added as anchor to the URL.
+        :param _method: if provided this explicitly specifies an HTTP method.
+        """"""
+        appctx = _app_ctx_stack.top
+        reqctx = _request_ctx_stack.top
+
+        if appctx is None:
+>           raise RuntimeError(
+                ""Attempted to generate a URL without the application context being""
+                "" pushed. This has to be executed when application context is""
+                "" available.""
+            )
+E           RuntimeError: Attempted to generate a URL without the application context being pushed. This has to be executed when application context is available.
+
+../../BUILDROOT/python-flask-2.0.2-3.fc35.x86_64/usr/lib/python3.8/site-packages/flask/helpers.py:274: RuntimeError
+___________________________________________________________________ TestUrlFor.test_url_for_with_scheme ____________________________________________________________________
+
+self = <test_helpers.TestUrlFor object at 0x7f18265a43a0>, app = <Flask 'flask_test'>, req_ctx = <RequestContext 'http://localhost/' [GET] of flask_test>
+
+    def test_url_for_with_scheme(self, app, req_ctx):
+        @app.route(""/"")
+        def index():
+            return ""42""
+
+>       assert (
+            flask.url_for(""index"", _external=True, _scheme=""https"")
+            == ""https://localhost/""
+        )
+
+tests/test_helpers.py:115:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+endpoint = 'index', values = {'_external': True, '_scheme': 'https'}, appctx = None, reqctx = None
+
+    def url_for(endpoint: str, **values: t.Any) -> str:
+        """"""Generates a URL to the given endpoint with the method provided.
+
+        Variable arguments that are unknown to the target endpoint are appended
+        to the generated URL as query arguments.  If the value of a query argument
+        is ``None``, the whole pair is skipped.  In case blueprints are active
+        you can shortcut references to the same blueprint by prefixing the
+        local endpoint with a dot (``.``).
+
+        This will reference the index function local to the current blueprint::
+
+            url_for('.index')
+
+        See :ref:`url-building`.
+
+        Configuration values ``APPLICATION_ROOT`` and ``SERVER_NAME`` are only used when
+        generating URLs outside of a request context.
+
+        To integrate applications, :class:`Flask` has a hook to intercept URL build
+        errors through :attr:`Flask.url_build_error_handlers`.  The `url_for`
+        function results in a :exc:`~werkzeug.routing.BuildError` when the current
+        app does not have a URL for the given endpoint and values.  When it does, the
+        :data:`~flask.current_app` calls its :attr:`~Flask.url_build_error_handlers` if
+        it is not ``None``, which can return a string to use as the result of
+        `url_for` (instead of `url_for`'s default to raise the
+        :exc:`~werkzeug.routing.BuildError` exception) or re-raise the exception.
+        An example::
+
+            def external_url_handler(error, endpoint, values):
+                ""Looks up an external URL when `url_for` cannot build a URL.""
+                # This is an example of hooking the build_error_handler.
+                # Here, lookup_url is some utility function you've built
+                # which looks up the endpoint in some external URL registry.
+                url = lookup_url(endpoint, **values)
+                if url is None:
+                    # External lookup did not have a URL.
+                    # Re-raise the BuildError, in context of original traceback.
+                    exc_type, exc_value, tb = sys.exc_info()
+                    if exc_value is error:
+                        raise exc_type(exc_value).with_traceback(tb)
+                    else:
+                        raise error
+                # url_for will use this result, instead of raising BuildError.
+                return url
+
+            app.url_build_error_handlers.append(external_url_handler)
+
+        Here, `error` is the instance of :exc:`~werkzeug.routing.BuildError`, and
+        `endpoint` and `values` are the arguments passed into `url_for`.  Note
+        that this is for building URLs outside the current application, and not for
+        handling 404 NotFound errors.
+
+        .. versionadded:: 0.10
+           The `_scheme` parameter was added.
+
+        .. versionadded:: 0.9
+           The `_anchor` and `_method` parameters were added.
+
+        .. versionadded:: 0.9
+           Calls :meth:`Flask.handle_build_error` on
+           :exc:`~werkzeug.routing.BuildError`.
+
+        :param endpoint: the endpoint of the URL (name of the function)
+        :param values: the variable arguments of the URL rule
+        :param _external: if set to ``True``, an absolute URL is generated. Server
+          address can be changed via ``SERVER_NAME`` configuration variable which
+          falls back to the `Host` header, then to the IP and port of the request.
+        :param _scheme: a string specifying the desired URL scheme. The `_external`
+          parameter must be set to ``True`` or a :exc:`ValueError` is raised. The default
+          behavior uses the same scheme as the current request, or
+          :data:`PREFERRED_URL_SCHEME` if no request context is available.
+          This also can be set to an empty string to build protocol-relative
+          URLs.
+        :param _anchor: if provided this is added as anchor to the URL.
+        :param _method: if provided this explicitly specifies an HTTP method.
+        """"""
+        appctx = _app_ctx_stack.top
+        reqctx = _request_ctx_stack.top
+
+        if appctx is None:
+>           raise RuntimeError(
+                ""Attempted to generate a URL without the application context being""
+                "" pushed. This has to be executed when application context is""
+                "" available.""
+            )
+E           RuntimeError: Attempted to generate a URL without the application context being pushed. This has to be executed when application context is available.
+
+../../BUILDROOT/python-flask-2.0.2-3.fc35.x86_64/usr/lib/python3.8/site-packages/flask/helpers.py:274: RuntimeError
+_____________________________________________________________ TestUrlFor.test_url_for_with_scheme_not_external _____________________________________________________________
+
+self = <test_helpers.TestUrlFor object at 0x7f18266450d0>, app = <Flask 'flask_test'>, req_ctx = <RequestContext 'http://localhost/' [GET] of flask_test>
+
+    def test_url_for_with_scheme_not_external(self, app, req_ctx):
+        @app.route(""/"")
+        def index():
+            return ""42""
+
+>       pytest.raises(ValueError, flask.url_for, ""index"", _scheme=""https"")
+
+tests/test_helpers.py:125:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+endpoint = 'index', values = {'_scheme': 'https'}, appctx = None, reqctx = None
+
+    def url_for(endpoint: str, **values: t.Any) -> str:
+        """"""Generates a URL to the given endpoint with the method provided.
+
+        Variable arguments that are unknown to the target endpoint are appended
+        to the generated URL as query arguments.  If the value of a query argument
+        is ``None``, the whole pair is skipped.  In case blueprints are active
+        you can shortcut references to the same blueprint by prefixing the
+        local endpoint with a dot (``.``).
+
+        This will reference the index function local to the current blueprint::
+
+            url_for('.index')
+
+        See :ref:`url-building`.
+
+        Configuration values ``APPLICATION_ROOT`` and ``SERVER_NAME`` are only used when
+        generating URLs outside of a request context.
+
+        To integrate applications, :class:`Flask` has a hook to intercept URL build
+        errors through :attr:`Flask.url_build_error_handlers`.  The `url_for`
+        function results in a :exc:`~werkzeug.routing.BuildError` when the current
+        app does not have a URL for the given endpoint and values.  When it does, the
+        :data:`~flask.current_app` calls its :attr:`~Flask.url_build_error_handlers` if
+        it is not ``None``, which can return a string to use as the result of
+        `url_for` (instead of `url_for`'s default to raise the
+        :exc:`~werkzeug.routing.BuildError` exception) or re-raise the exception.
+        An example::
+
+            def external_url_handler(error, endpoint, values):
+                ""Looks up an external URL when `url_for` cannot build a URL.""
+                # This is an example of hooking the build_error_handler.
+                # Here, lookup_url is some utility function you've built
+                # which looks up the endpoint in some external URL registry.
+                url = lookup_url(endpoint, **values)
+                if url is None:
+                    # External lookup did not have a URL.
+                    # Re-raise the BuildError, in context of original traceback.
+                    exc_type, exc_value, tb = sys.exc_info()
+                    if exc_value is error:
+                        raise exc_type(exc_value).with_traceback(tb)
+                    else:
+                        raise error
+                # url_for will use this result, instead of raising BuildError.
+                return url
+
+            app.url_build_error_handlers.append(external_url_handler)
+
+        Here, `error` is the instance of :exc:`~werkzeug.routing.BuildError`, and
+        `endpoint` and `values` are the arguments passed into `url_for`.  Note
+        that this is for building URLs outside the current application, and not for
+        handling 404 NotFound errors.
+
+        .. versionadded:: 0.10
+           The `_scheme` parameter was added.
+
+        .. versionadded:: 0.9
+           The `_anchor` and `_method` parameters were added.
+
+        .. versionadded:: 0.9
+           Calls :meth:`Flask.handle_build_error` on
+           :exc:`~werkzeug.routing.BuildError`.
+
+        :param endpoint: the endpoint of the URL (name of the function)
+        :param values: the variable arguments of the URL rule
+        :param _external: if set to ``True``, an absolute URL is generated. Server
+          address can be changed via ``SERVER_NAME`` configuration variable which
+          falls back to the `Host` header, then to the IP and port of the request.
+        :param _scheme: a string specifying the desired URL scheme. The `_external`
+          parameter must be set to ``True`` or a :exc:`ValueError` is raised. The default
+          behavior uses the same scheme as the current request, or
+          :data:`PREFERRED_URL_SCHEME` if no request context is available.
+          This also can be set to an empty string to build protocol-relative
+          URLs.
+        :param _anchor: if provided this is added as anchor to the URL.
+        :param _method: if provided this explicitly specifies an HTTP method.
+        """"""
+        appctx = _app_ctx_stack.top
+        reqctx = _request_ctx_stack.top
+
+        if appctx is None:
+>           raise RuntimeError(
+                ""Attempted to generate a URL without the application context being""
+                "" pushed. This has to be executed when application context is""
+                "" available.""
+            )
+E           RuntimeError: Attempted to generate a URL without the application context being pushed. This has to be executed when application context is available.
+
+../../BUILDROOT/python-flask-2.0.2-3.fc35.x86_64/usr/lib/python3.8/site-packages/flask/helpers.py:274: RuntimeError
+___________________________________________________________________ test_json_as_unicode[False-""\u2603""] ___________________________________________________________________
+
+test_value = False, expected = '""☃""', app = <Flask 'flask_test'>, app_ctx = <flask.ctx.AppContext object at 0x7f182cbab6d0>
+
+    @pytest.mark.parametrize(
+        ""test_value,expected"", [(True, '""\\u2603""'), (False, '""\u2603""')]
+    )
+    def test_json_as_unicode(test_value, expected, app, app_ctx):
+
+        app.config[""JSON_AS_ASCII""] = test_value
+        rv = flask.json.dumps(""\N{SNOWMAN}"")
+>       assert rv == expected
+E       assert '""\\u2603""' == '""☃""'
+E         - ""☃""
+E         + ""\u2603""
+
+tests/test_json.py:54: AssertionError
+____________________________________________________________________________ test_tojson_filter ____________________________________________________________________________
+
+app = <Flask 'flask_test'>, req_ctx = <RequestContext 'http://localhost/' [GET] of flask_test>
+
+    def test_tojson_filter(app, req_ctx):
+        # The tojson filter is tested in Jinja, this confirms that it's
+        # using Flask's dumps.
+>       rv = flask.render_template_string(
+            ""const data = {{ data|tojson }};"",
+            data={""name"": ""</script>"", ""time"": datetime.datetime(2021, 2, 1, 7, 15)},
+        )
+
+tests/test_json.py:213:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+source = 'const data = {{ data|tojson }};', context = {'data': {'name': '</script>', 'time': datetime.datetime(2021, 2, 1, 7, 15)}}, ctx = None
+
+    def render_template_string(source: str, **context: t.Any) -> str:
+        """"""Renders a template from the given template source string
+        with the given context. Template variables will be autoescaped.
+
+        :param source: the source code of the template to be
+                       rendered
+        :param context: the variables that should be available in the
+                        context of the template.
+        """"""
+        ctx = _app_ctx_stack.top
+>       ctx.app.update_template_context(context)
+E       AttributeError: 'NoneType' object has no attribute 'app'
+
+../../BUILDROOT/python-flask-2.0.2-3.fc35.x86_64/usr/lib/python3.8/site-packages/flask/templating.py:164: AttributeError
+========================================================================= short test summary info ==========================================================================
+SKIPPED [1] tests/test_async.py:159: should only raise Python < 3.7
+XPASS tests/test_instance_config.py::test_uninstalled_module_paths weird interaction with tox
+XPASS tests/test_instance_config.py::test_uninstalled_package_paths weird interaction with tox
+XPASS tests/test_instance_config.py::test_main_module_paths weird interaction with tox
+FAILED tests/test_basic.py::test_get_method_on_g - RuntimeError: Working outside of application context.
+FAILED tests/test_basic.py::test_make_response - RuntimeError: Working outside of application context.
+FAILED tests/test_basic.py::test_url_generation - RuntimeError: Attempted to generate a URL without the application context being pushed. This has to be executed when ap...
+FAILED tests/test_basic.py::test_jsonify_prettyprint - RuntimeError: Working outside of application context.
+FAILED tests/test_basic.py::test_jsonify_args_and_kwargs_check - RuntimeError: Working outside of application context.
+FAILED tests/test_basic.py::test_make_response_with_response_instance - RuntimeError: Working outside of application context.
+FAILED tests/test_basic.py::test_flashes - RuntimeError: Working outside of request context.
+FAILED tests/test_basic.py::test_jsonify_mimetype - RuntimeError: Working outside of application context.
+FAILED tests/test_basic.py::test_g_iteration_protocol - RuntimeError: Working outside of application context.
+FAILED tests/test_basic.py::test_jsonify_no_prettyprint - RuntimeError: Working outside of application context.
+FAILED tests/test_templating.py::test_request_less_rendering - AttributeError: 'NoneType' object has no attribute 'app'
+FAILED tests/test_templating.py::test_macros - RuntimeError: Working outside of application context.
+FAILED tests/test_templating.py::test_add_template_global - AttributeError: 'NoneType' object has no attribute 'app'
+FAILED tests/test_templating.py::test_escaping_without_template_filename - AttributeError: 'NoneType' object has no attribute 'app'
+FAILED tests/test_testing.py::test_environ_base_default - RuntimeError: Working outside of application context.
+FAILED tests/test_testing.py::test_session_transactions_keep_context - RuntimeError: Working outside of request context.
+FAILED tests/test_testing.py::test_environ_base_modified - RuntimeError: Working outside of application context.
+FAILED tests/test_testing.py::test_client_pop_all_preserved - AssertionError: assert None is <RequestContext 'http://localhost/' [GET] of flask_test>
+FAILED tests/test_appctx.py::test_app_ctx_globals_methods - RuntimeError: Working outside of application context.
+FAILED tests/test_helpers.py::TestSendfile::test_send_from_directory - RuntimeError: Working outside of application context.
+FAILED tests/test_helpers.py::TestSendfile::test_static_file - RuntimeError: Working outside of application context.
+FAILED tests/test_helpers.py::TestSendfile::test_send_file - RuntimeError: Working outside of request context.
+FAILED tests/test_helpers.py::TestUrlFor::test_url_with_method - RuntimeError: Attempted to generate a URL without the application context being pushed. This has to be e...
+FAILED tests/test_helpers.py::TestUrlFor::test_url_for_with_alternating_schemes - RuntimeError: Attempted to generate a URL without the application context being pushed....
+FAILED tests/test_helpers.py::TestUrlFor::test_url_for_with_anchor - RuntimeError: Attempted to generate a URL without the application context being pushed. This has to ...
+FAILED tests/test_helpers.py::TestUrlFor::test_url_for_with_scheme - RuntimeError: Attempted to generate a URL without the application context being pushed. This has to ...
+FAILED tests/test_helpers.py::TestUrlFor::test_url_for_with_scheme_not_external - RuntimeError: Attempted to generate a URL without the application context being pushed....
+FAILED tests/test_json.py::test_json_as_unicode[False-""\u2603""] - assert '""\\u2603""' == '""☃""'
+FAILED tests/test_json.py::test_tojson_filter - AttributeError: 'NoneType' object has no attribute 'app'
+=========================================================== 29 failed, 446 passed, 1 skipped, 3 xpassed in 7.95s ===========================================================
+pytest-xprocess reminder::Be sure to terminate the started process by running 'pytest --xkill' if you have not explicitly done so in your fixture with 'xprocess.getinfo(<process_name>).terminate()'.
+```
+
+</details>",Medium,Multiple unit test failures during Fedora RPM package build with external pytest plugins.
+158315713,1877,jsonify no longer causes Content-Length to be set on returned Response object,"I am not sure if this was an intentional change, as it is only triggered by `jsonify` by passing an iterable to `flask.wrappers.Response`/`werkzeug.wrappers.Response`.
+
+In commit https://github.com/pallets/flask/commit/d9402fc0c03353b6d2659297682e578d695476ce a newline was added to the json response, as per a request from the httpbin project.
+
+When `werkzeug.wrappers.Response` is passed a non text_type iterable, the `self.set_data` codepath, responsible for setting the Content-Length header, is not used anymore.
+
+Ironcially this breaks httpbins ""response-headers"" route that uses the response object in a somewhat
+creative way and breaks while trying to access `response.headers['Content-Length']`
+
+If this considered a backwards incompatible change that might need to be undone, or is this considered new and intended behaviour?
+",Medium,Regression in jsonify where adding trailing newline bypassed Content-Length header generation.
+891337682,4043,Older versions (1.x.x) of flask pin some dependencies in a way that could cause issues,"first of all, congratulations on the new release! this is an amazing codebase and framework <3
+
+flask's 1.x.x setup.py lists semvers that might cause breaking changes:
+
+https://github.com/pallets/flask/blob/1.1.x/setup.py#L57-L59
+https://github.com/pallets/flask/blob/1.0.x/setup.py#L53-L56
+
+specifically, with the new releases of itsdangerous and MarkupSafe, it's possible here to unintentionally increase the versions of those packages while remaining on a 1.x.x version of flask. for example I saw this error occur in a service i manage:
+
+```
+TypeError: Object of type 'Decimal' is not JSON serializable
+  File ""flask/app.py"", line 2292, in wsgi_app
+    response = self.full_dispatch_request()
+  File ""flask/app.py"", line 1815, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File ""flask/app.py"", line 1718, in handle_user_exception
+    reraise(exc_type, exc_value, tb)
+  File ""flask/_compat.py"", line 35, in reraise
+    raise value
+  File ""flask/app.py"", line 1813, in full_dispatch_request
+    rv = self.dispatch_request()
+  File ""flask/app.py"", line 1799, in dispatch_request
+    return self.view_functions[rule.endpoint](**req.view_args)
+  File ""{OBFUSCATED}"", line 688, in timed_function
+    return fn(*args, **kwargs)
+  File ""{OBFUSCATED}"", line 268, in handler
+    return ok_response(results)
+  File ""{OBFUSCATED}"", line 101, in ok_response
+    return make_response(jsonify(success=True, data=data), 200)
+  File ""flask/json/__init__.py"", line 321, in jsonify
+    dumps(data, indent=indent, separators=separators) + '\n',
+  File ""flask/json/__init__.py"", line 179, in dumps
+    rv = _json.dumps(obj, **kwargs)
+  File ""__init__.py"", line 238, in dumps
+    **kw).encode(obj)
+  File ""json/encoder.py"", line 199, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+  File ""json/encoder.py"", line 257, in iterencode
+    return _iterencode(o, 0)
+  File ""flask/json/__init__.py"", line 81, in default
+    return _json.JSONEncoder.default(self, o)
+  File ""json/encoder.py"", line 180, in default
+    o.__class__.__name__)
+```
+ 
+reproduction: take a currently running flask application's python environment, pip freeze. make a new venv, and install, pip freeze, check out the diff
+
+
+flask shouldn't upgrade major versions of these dependencies to avoid breaking changes. i realize that better package management like poetry would help with this, but hindsight is 2020 :)
+
+Environment:
+
+- Python version: 3.6
+- Flask version: 1.x.x
+",Medium,Loose upper-bound dependency pinning in legacy 1.x releases allows breaking dependency updates.
+1328537495,4739,Tests failing on latest Flask version 2.2.1,"Hi All,
+I am working on a Flask project and suddenly my unit tests start failing on the latest flask version `2.2.1`
+Got following error while running [tox](https://pypi.org/project/tox/) command 
+
+> /usr/lib/python3.8/doctest.py:939: in find
+    self._find(tests, obj, name, module, source_lines, globs, {})
+.tox/tests/lib/python3.8/site-packages/_pytest/doctest.py:533: in _find
+    super()._find(  # type:ignore[misc]
+/usr/lib/python3.8/doctest.py:998: in _find
+    if ((inspect.isroutine(inspect.unwrap(val))
+.tox/tests/lib/python3.8/site-packages/_pytest/doctest.py:475: in _mock_aware_unwrap
+    return real_unwrap(func, stop=_is_mocked)
+/usr/lib/python3.8/inspect.py:520: in unwrap
+    while _is_wrapper(func):
+/usr/lib/python3.8/inspect.py:514: in _is_wrapper
+    return hasattr(f, '__wrapped__') and not stop(f)
+.tox/tests/lib/python3.8/site-packages/werkzeug/local.py:316: in __get__
+    obj = instance._get_current_object()  # type: ignore[misc]
+.tox/tests/lib/python3.8/site-packages/werkzeug/local.py:509: in _get_current_object
+    raise RuntimeError(unbound_message) from None
+E   RuntimeError: Working outside of request context.
+E   
+E   This typically means that you attempted to use functionality that needed
+E   an active HTTP request. Consult the documentation on testing for
+E   information about how to avoid this problem.
+
+When I changed my flask version back to `2.1.3` it started working again. 
+",High,Major regression in 2.2.1 where inspect.unwrap on Werkzeug LocalProxy crashes doctest/pytest suites with RuntimeError outside request context.
+293382861,2616,A setup function was called after the first request was handled,"I see that there is an suggestion saying ""To fix this make sure to import all your view modules, database models and everything related at a central place before the application starts serving requests.""
+
+We have encountered this problem while adding an first-installation page for our app like WordPress. Now we are using Flask-Security for user management.  When our app is visited at the first time,  the installation page will display and allow user to config the database, admin account etc. 
+
+The problem is that we need to setup the Flask-Security after the first request that providing the database setting because the Security instance can't be inited without a datastore.
+
+Do you have any suggestions about this situation ?
+
+Thanks ~",Low,User architecture inquiry asking how to handle post-install configuration before first request.
+1325854662,4728,`Flask test` does not work (tables not created) after 2.2.0 update,"With Flask 2.1.0 :
+
+```bash
+$ flask test
+=========================================================================== test session starts ============================================================================
+platform darwin -- Python 3.10.3, pytest-7.1.2, pluggy-1.0.0 -- /Users/antoine/Documents/Git/portail/venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /Users/antoine/Documents/Git/portail
+collected 29 items                                                                           
+...
+===================================================================== 29 passed, 5 warnings in 15.65s ======================================================================
+```
+
+With Flask 2.2.0 :
+
+```bash
+=========================================================================== test session starts ============================================================================
+platform darwin -- Python 3.10.3, pytest-7.1.2, pluggy-1.0.0 -- /Users/antoine/Documents/Git/portail/venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /Users/antoine/Documents/Git/portail
+collected 29 items                                                                                                                                                         
+
+test/test_accessibility.py::TestAccessibility::test_admin_accessibility ERROR
+test/test_accessibility.py::TestAccessibility::test_client_accessibility ERROR
+...
+========================================================================= short test summary info ==========================================================================
+ERROR test/test_accessibility.py::TestAccessibility::test_admin_accessibility - sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: cre_module
+ERROR test/test_accessibility.py::TestAccessibility::test_client_accessibility - sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: cre_module
+```
+
+My tables are not created in Flask 2.2.0
+
+However I didn't change anything in my tests and I don't see anything in the changelog that could affect the tests.
+The errors happen only when I change the version of Flask (2.1.3 --> 2.2.0).
+
+Here is the code that creates the tables (which works in 2.1.3 but not in 2.2.0).
+
+```python
+from portail import create_app
+from portail.modules import PORTAIL_MODULES, detect_modules
+from portail.database import db as _db
+from portail.settings import TestConfig
+
+@pytest.fixture()
+def app():
+    """"""An application for the tests.""""""
+    _app = create_app(TestConfig())
+
+    with _app.app_context():
+        _db.create_all()
+        modules = detect_modules()
+        for m in modules:
+            m.save(False)
+        _db.session.commit()
+        for m in modules:
+            PORTAIL_MODULES[m.id] = m
+            m.expunge()
+
+    ctx = _app.test_request_context()
+    ctx.push()
+
+    yield _app
+
+    ctx.pop()
+
+    with _app.app_context():
+        _db.drop_all()
+
+@pytest.fixture()
+def db(app):
+    """"""A database for the tests.""""""
+    _db.app = app
+    with app.app_context():
+        _db.create_all()
+
+    yield _db
+
+    # Explicitly close DB connection
+    _db.session.close()
+    _db.drop_all()
+```
+
+Has `app.app_context()` been modified or something I use for database setup?
+
+Environment:
+
+- Python version: 3.10.3
+- Flask version: 2.2.0",Medium,Regression in Flask 2.2.0 app_context lifecycle affecting SQLite table creation in pytest fixtures.
